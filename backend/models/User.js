@@ -43,6 +43,50 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+
+    // --- Email verification ---
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    // --- OTP state (used for both email verification and password reset) ---
+    // Each purpose keeps its own hash/expiry/attempts so they don't clash.
+    verifyOtpHash: {
+      type: String,
+      select: false,
+    },
+    verifyOtpExpiry: {
+      type: Date,
+      select: false,
+    },
+    verifyOtpAttempts: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
+    verifyOtpLastSentAt: {
+      type: Date,
+      select: false,
+    },
+
+    resetOtpHash: {
+      type: String,
+      select: false,
+    },
+    resetOtpExpiry: {
+      type: Date,
+      select: false,
+    },
+    resetOtpAttempts: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
+    resetOtpLastSentAt: {
+      type: Date,
+      select: false,
+    },
   },
   { timestamps: true },
 );
@@ -64,10 +108,18 @@ userSchema.methods.comparePassword = function (candidate) {
   return bcrypt.compare(candidate, this.password);
 };
 
-// Hide password in JSON responses
+// Hide sensitive fields in JSON responses
 userSchema.set("toJSON", {
   transform: (_doc, ret) => {
     delete ret.password;
+    delete ret.verifyOtpHash;
+    delete ret.verifyOtpExpiry;
+    delete ret.verifyOtpAttempts;
+    delete ret.verifyOtpLastSentAt;
+    delete ret.resetOtpHash;
+    delete ret.resetOtpExpiry;
+    delete ret.resetOtpAttempts;
+    delete ret.resetOtpLastSentAt;
     delete ret.__v;
     return ret;
   },

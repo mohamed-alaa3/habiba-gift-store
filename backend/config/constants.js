@@ -90,6 +90,20 @@ const UPLOAD = {
   ALLOWED_EXTENSIONS: [".jpg", ".jpeg", ".png", ".webp"],
 };
 
+// --- OTP (password reset + email verification) ---
+const OTP = {
+  LENGTH: 6,
+  EXPIRY_MINUTES: 10,
+  MAX_ATTEMPTS: 5,
+  RESEND_COOLDOWN_SECONDS: 60,
+  RESET_TOKEN_EXPIRES_IN: "15m", // JWT lifetime for the password-reset token
+
+  PURPOSES: {
+    PASSWORD_RESET: "password-reset",
+    EMAIL_VERIFICATION: "email-verification",
+  },
+};
+
 module.exports = {
   ROLES,
   ROLE_VALUES,
@@ -110,4 +124,5 @@ module.exports = {
   DEFAULT_LANGUAGE,
   PAGINATION,
   UPLOAD,
+  OTP,
 };

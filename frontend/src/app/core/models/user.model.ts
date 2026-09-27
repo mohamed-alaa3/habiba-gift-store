@@ -9,9 +9,12 @@ export interface User {
   phone: string;
   role: UserRole;
   isActive: boolean;
+  isEmailVerified: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
+// ─── Auth ─────────────────────────────────────────────────────
 
 export interface LoginPayload {
   email: string;
@@ -30,6 +33,11 @@ export interface AuthResponse {
   token: string;
 }
 
+export interface RegisterResponse {
+  user: User;
+  message: string;
+}
+
 export interface UpdateProfilePayload {
   name?: string;
   phone?: string;
@@ -38,4 +46,43 @@ export interface UpdateProfilePayload {
 export interface ChangePasswordPayload {
   currentPassword: string;
   newPassword: string;
+}
+
+// ─── Email verification ───────────────────────────────────────
+
+export interface VerifyEmailPayload {
+  email: string;
+  otp: string;
+}
+
+export interface ResendVerificationPayload {
+  email: string;
+}
+
+// ─── Password reset (OTP flow) ────────────────────────────────
+
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+}
+
+export interface VerifyResetOtpPayload {
+  email: string;
+  otp: string;
+}
+
+export interface VerifyResetOtpResponse {
+  resetToken: string;
+}
+
+export interface ResetPasswordPayload {
+  resetToken: string;
+  newPassword: string;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
 }

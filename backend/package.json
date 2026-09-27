@@ -28,6 +28,7 @@
     "mongoose": "^8.24.4",
     "morgan": "^1.12.1",
     "multer": "^2.4.0",
+    "nodemailer": "^10.0.11",
     "xss": "^1.0.15"
   },
   "devDependencies": {

@@ -1,11 +1,26 @@
-const { body, validationResult } = require("express-validator");
-
-/**
- * Runs after express-validator chains.
- * Collects errors and returns 400 in our standard shape.
- */
+const { body } = require("express-validator");
 const { runValidation } = require("./_common");
+const { OTP } = require("../config/constants");
 
+// ─── Password strength helper ──────────────────────────────────
+// Server-side check. Frontend shows the live checklist, but the
+// backend is still authoritative.
+const PASSWORD_MIN_LENGTH = 8;
+const STRONG_PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]).+$/;
+
+const passwordRules = (field = "password") =>
+  body(field)
+    .notEmpty()
+    .withMessage("Password is required")
+    .isLength({ min: PASSWORD_MIN_LENGTH })
+    .withMessage("Password must be at least 8 characters")
+    .matches(STRONG_PASSWORD_REGEX)
+    .withMessage(
+      "Password must contain uppercase, lowercase, number, and special character",
+    );
+
+// ─── Register ──────────────────────────────────────────────────
 const registerValidator = [
   body("name")
     .trim()
@@ -22,11 +37,7 @@ const registerValidator = [
     .withMessage("Please provide a valid email address")
     .normalizeEmail(),
 
-  body("password")
-    .notEmpty()
-    .withMessage("Password is required")
-    .isLength({ min: 8 })
-    .withMessage("Password must be at least 8 characters"),
+  passwordRules("password"),
 
   body("phone")
     .optional({ checkFalsy: true })
@@ -37,6 +48,7 @@ const registerValidator = [
   runValidation,
 ];
 
+// ─── Login ─────────────────────────────────────────────────────
 const loginValidator = [
   body("email")
     .trim()
@@ -51,6 +63,41 @@ const loginValidator = [
   runValidation,
 ];
 
+// ─── Email verification ────────────────────────────────────────
+const verifyEmailValidator = [
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+
+  body("otp")
+    .trim()
+    .notEmpty()
+    .withMessage("Code is required")
+    .isLength({ min: OTP.LENGTH, max: OTP.LENGTH })
+    .withMessage(`Code must be ${OTP.LENGTH} digits`)
+    .isNumeric()
+    .withMessage("Code must be numeric"),
+
+  runValidation,
+];
+
+const resendVerificationValidator = [
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+
+  runValidation,
+];
+
+// ─── Profile ───────────────────────────────────────────────────
 const updateMeValidator = [
   body("name")
     .optional()
@@ -72,11 +119,49 @@ const changePasswordValidator = [
     .notEmpty()
     .withMessage("Current password is required"),
 
-  body("newPassword")
+  passwordRules("newPassword"),
+
+  runValidation,
+];
+
+// ─── Password reset ────────────────────────────────────────────
+const forgotPasswordValidator = [
+  body("email")
+    .trim()
     .notEmpty()
-    .withMessage("New password is required")
-    .isLength({ min: 8 })
-    .withMessage("New password must be at least 8 characters"),
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+
+  runValidation,
+];
+
+const verifyResetOtpValidator = [
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+
+  body("otp")
+    .trim()
+    .notEmpty()
+    .withMessage("Code is required")
+    .isLength({ min: OTP.LENGTH, max: OTP.LENGTH })
+    .withMessage(`Code must be ${OTP.LENGTH} digits`)
+    .isNumeric()
+    .withMessage("Code must be numeric"),
+
+  runValidation,
+];
+
+const resetPasswordValidator = [
+  body("resetToken").notEmpty().withMessage("Reset token is required"),
+
+  passwordRules("newPassword"),
 
   runValidation,
 ];
@@ -84,6 +169,11 @@ const changePasswordValidator = [
 module.exports = {
   registerValidator,
   loginValidator,
+  verifyEmailValidator,
+  resendVerificationValidator,
   updateMeValidator,
   changePasswordValidator,
+  forgotPasswordValidator,
+  verifyResetOtpValidator,
+  resetPasswordValidator,
 };

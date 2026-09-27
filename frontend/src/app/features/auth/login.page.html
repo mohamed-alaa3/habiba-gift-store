@@ -52,7 +52,9 @@
         <div class="auth__field">
           <div class="auth__label-row">
             <label for="login-password" class="auth__label">{{ 'auth.password' | translate }}</label>
-            <a routerLink="/auth/forgot-password" class="auth__link">{{ 'auth.forgotPassword' | translate }}</a>
+            <button type="button" class="auth__link auth__link--button" (click)="openForgotPassword()">
+              {{ 'auth.forgotPassword' | translate }}
+            </button>
           </div>
           <div class="auth__input-wrap" [class.has-error]="form.controls.password.touched && form.controls.password.invalid">
             <svg class="auth__input-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -121,3 +123,15 @@
     </div>
   </div>
 </div>
+
+<!-- Forgot password modal -->
+<app-forgot-password-modal
+  [isOpen]="forgotPasswordOpen()"
+  (closed)="closeForgotPassword()"
+/>
+<!-- Verify email modal (shown when an unverified account tries to log in) -->
+<app-verify-email-modal
+  [isOpen]="verifyModalOpen()"
+  [email]="pendingEmail()"
+  (closed)="closeVerifyModal()"
+/>

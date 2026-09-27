@@ -12,13 +12,23 @@ import { CartService } from '../../core/services/cart.service';
 import { WishlistService } from '../../core/services/wishlist.service';
 
 import { AuthPanelComponent } from './components/auth-panel/auth-panel.component';
+import { ForgotPasswordModalComponent } from './components/forgot-password-modal/forgot-password-modal.component';
+import { VerifyEmailModalComponent } from './components/verify-email-modal/verify-email-modal.component';
 
 const FETCH_TIMEOUT_MS = 10000;
 
 @Component({
   selector: 'app-login-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, TranslatePipe, AuthPanelComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    TranslatePipe,
+    AuthPanelComponent,
+    ForgotPasswordModalComponent,
+    VerifyEmailModalComponent,
+  ],
   templateUrl: './login.page.html',
   styleUrl: './auth.page.scss',
 })
@@ -35,6 +45,13 @@ export class LoginPage {
   protected readonly submitting = signal(false);
   protected readonly passwordVisible = signal(false);
 
+  // Forgot password modal
+  protected readonly forgotPasswordOpen = signal(false);
+
+  // Verify email modal (shown when a login attempt hits an unverified account)
+  protected readonly verifyModalOpen = signal(false);
+  protected readonly pendingEmail = signal('');
+
   protected readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
@@ -42,6 +59,18 @@ export class LoginPage {
 
   protected togglePasswordVisibility(): void {
     this.passwordVisible.update((v) => !v);
+  }
+
+  protected openForgotPassword(): void {
+    this.forgotPasswordOpen.set(true);
+  }
+
+  protected closeForgotPassword(): void {
+    this.forgotPasswordOpen.set(false);
+  }
+
+  protected closeVerifyModal(): void {
+    this.verifyModalOpen.set(false);
   }
 
   protected submit(): void {
@@ -57,7 +86,15 @@ export class LoginPage {
       .login({ email, password })
       .pipe(
         timeout(FETCH_TIMEOUT_MS),
-        catchError(() => of(null)),
+        catchError((err) => {
+          // If the account isn't verified, show the verify modal instead of a toast.
+          const message: string = err?.error?.message ?? '';
+          if (message.toLowerCase().includes('verify your email')) {
+            this.pendingEmail.set(email);
+            this.verifyModalOpen.set(true);
+          }
+          return of(null);
+        }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((res) => {
