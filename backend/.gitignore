@@ -1,0 +1,24 @@
+node_modules/
+.env
+.env.local
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# uploads — keep folders but ignore files
+uploads/products/*
+uploads/categories/*
+uploads/banners/*
+!uploads/products/.gitkeep
+!uploads/categories/.gitkeep
+!uploads/banners/.gitkeep
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# builds (frontend later)
+dist/
+coverage/

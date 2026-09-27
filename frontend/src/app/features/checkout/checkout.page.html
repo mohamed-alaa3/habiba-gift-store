@@ -1,0 +1,331 @@
+<section class="checkout">
+  <!-- CONFIRMATION -->
+  @if (flowState() === 'confirmed' && createdOrder(); as order) {
+    <app-checkout-order-confirmation [order]="order" />
+  }
+
+  <!-- LOADING -->
+  @if (flowState() !== 'confirmed' && loadState() === 'loading') {
+    <div class="checkout__loader">
+      <app-loader size="lg" variant="spinner" [label]="'common.loading' | translate" />
+    </div>
+  }
+
+  <!-- ERROR -->
+  @if (flowState() !== 'confirmed' && loadState() === 'error') {
+    <app-empty-state
+      icon="inbox"
+      [title]="'checkout.errorTitle' | translate"
+      [message]="'checkout.errorText' | translate"
+      [actionLabel]="'common.retry' | translate"
+      (actionClick)="retry()"
+    />
+  }
+
+  <!-- EMPTY -->
+  @if (flowState() !== 'confirmed' && loadState() === 'empty') {
+    <app-empty-state
+      icon="cart"
+      [title]="'cart.emptyTitle' | translate"
+      [message]="'cart.emptyText' | translate"
+      [actionLabel]="'cart.continueShopping' | translate"
+      [actionLink]="'/shop'"
+    />
+  }
+
+  <!-- FORM -->
+  @if (flowState() !== 'confirmed' && loadState() === 'ready') {
+    <header class="checkout__header">
+      <div class="checkout__header-top">
+        <a routerLink="/cart" class="checkout__back">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          {{ 'checkout.returnToCart' | translate }}
+        </a>
+      </div>
+      <h1 class="checkout__title">{{ 'checkout.title' | translate }}</h1>
+    </header>
+
+    <app-checkout-step-indicator [current]="currentStep()" />
+
+    <div class="checkout__layout">
+      <div class="checkout__main">
+        <!-- STEP 1: INFORMATION -->
+        @if (currentStep() === 'information') {
+          <form class="checkout__form" [formGroup]="form" (ngSubmit)="continueToReview()">
+            @if (savedAddresses().length > 0) {
+              <section class="checkout__section">
+                <h2 class="checkout__section-title">
+                  {{ 'checkout.savedAddresses' | translate }}
+                </h2>
+                <div class="checkout__addresses">
+                  @for (addr of savedAddresses(); track addr._id) {
+                    <button
+                      type="button"
+                      class="checkout__address-card"
+                      [class.is-active]="selectedAddressId() === addr._id"
+                      (click)="applyAddress(addr)"
+                    >
+                      <div class="checkout__address-head">
+                        <p class="checkout__address-name">{{ addr.fullName }}</p>
+                        @if (addr.isDefault) {
+                          <span class="checkout__address-badge">
+                            {{ 'checkout.default' | translate }}
+                          </span>
+                        }
+                      </div>
+                      <p class="checkout__address-line">{{ addr.street }}{{ addr.building ? ', ' + addr.building : '' }}</p>
+                      <p class="checkout__address-line">{{ addr.city }}{{ addr.country ? ', ' + addr.country : '' }}</p>
+                      <p class="checkout__address-line">{{ addr.phone }}</p>
+                    </button>
+                  }
+                </div>
+              </section>
+            }
+
+            <section class="checkout__section">
+              <h2 class="checkout__section-title">
+                <span class="checkout__section-num">1</span>
+                {{ 'checkout.contactInfo' | translate }}
+              </h2>
+
+              <app-input
+                formControlName="email"
+                type="email"
+                [label]="'checkout.email' | translate"
+                [placeholder]="'checkout.emailPlaceholder' | translate"
+                [error]="showError('email') ? errorFor('email') : ''"
+                autocomplete="email"
+              />
+            </section>
+
+            <section class="checkout__section">
+              <h2 class="checkout__section-title">
+                <span class="checkout__section-num">2</span>
+                {{ 'checkout.shippingAddress' | translate }}
+              </h2>
+
+              <div class="checkout__grid">
+                <app-input
+                  formControlName="fullName"
+                  [label]="'checkout.fullName' | translate"
+                  [error]="showError('fullName') ? errorFor('fullName') : ''"
+                  autocomplete="name"
+                />
+                <app-input
+                  formControlName="phone"
+                  type="tel"
+                  [label]="'checkout.phone' | translate"
+                  [error]="showError('phone') ? errorFor('phone') : ''"
+                  autocomplete="tel"
+                />
+              </div>
+
+              <div class="checkout__grid">
+                <app-input
+                  formControlName="country"
+                  [label]="'checkout.country' | translate"
+                  [error]="showError('country') ? errorFor('country') : ''"
+                  autocomplete="country"
+                />
+                <app-input
+                  formControlName="city"
+                  [label]="'checkout.city' | translate"
+                  [error]="showError('city') ? errorFor('city') : ''"
+                  autocomplete="address-level2"
+                />
+              </div>
+
+              <div class="checkout__grid">
+                <app-input
+                  formControlName="area"
+                  [label]="'checkout.area' | translate"
+                  autocomplete="address-level3"
+                />
+                <app-input
+                  formControlName="postalCode"
+                  [label]="'checkout.postalCode' | translate"
+                  autocomplete="postal-code"
+                />
+              </div>
+
+              <app-input
+                formControlName="street"
+                [label]="'checkout.street' | translate"
+                [error]="showError('street') ? errorFor('street') : ''"
+                autocomplete="address-line1"
+              />
+
+              <div class="checkout__grid">
+                <app-input
+                  formControlName="building"
+                  [label]="'checkout.building' | translate"
+                />
+                <app-input
+                  formControlName="apartment"
+                  [label]="'checkout.apartment' | translate"
+                />
+              </div>
+            </section>
+
+            <section class="checkout__section">
+              <h2 class="checkout__section-title">
+                <span class="checkout__section-num">3</span>
+                {{ 'checkout.additionalNotes' | translate }}
+              </h2>
+              <app-textarea
+                formControlName="notes"
+                [label]="'checkout.notes' | translate"
+                [placeholder]="'checkout.notesPlaceholder' | translate"
+                [rows]="4"
+              />
+            </section>
+
+            <div class="checkout__form-actions">
+              <button
+                type="submit"
+                class="checkout__btn checkout__btn--primary"
+                [disabled]="form.invalid"
+              >
+                {{ 'checkout.continueToReview' | translate }}
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+          </form>
+        }
+
+        <!-- STEP 2: REVIEW -->
+        @if (currentStep() === 'review') {
+          <app-checkout-order-review
+            [items]="items()"
+            [address]="form.getRawValue()"
+            [notes]="form.controls.notes.value"
+          />
+
+          <section class="checkout__section">
+            <h2 class="checkout__section-title">
+              {{ 'checkout.paymentMethod' | translate }}
+            </h2>
+            <div class="checkout__payment">
+              <label class="checkout__payment-option is-active">
+                <input type="radio" name="payment" checked disabled />
+                <div class="checkout__payment-info">
+                  <span class="checkout__payment-title">
+                    {{ 'checkout.cashOnDelivery' | translate }}
+                  </span>
+                  <span class="checkout__payment-desc">
+                    {{ 'checkout.cashOnDeliveryDesc' | translate }}
+                  </span>
+                </div>
+              </label>
+              <p class="checkout__payment-note">
+                {{ 'checkout.paymentNote' | translate }}
+              </p>
+            </div>
+          </section>
+
+          <div class="checkout__form-actions">
+            <button
+              type="button"
+              class="checkout__btn checkout__btn--ghost"
+              (click)="backToInformation()"
+              [disabled]="submitting()"
+            >
+              {{ 'common.back' | translate }}
+            </button>
+
+            <button
+              type="button"
+              class="checkout__btn checkout__btn--primary"
+              (click)="placeOrder()"
+              [disabled]="submitting() || !canPlaceOrder()"
+            >
+              @if (submitting()) {
+                <span class="checkout__spinner" aria-hidden="true"></span>
+                {{ 'checkout.placing' | translate }}
+              } @else {
+                {{ 'checkout.placeOrder' | translate }}
+              }
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- SUMMARY SIDEBAR -->
+      <aside class="checkout__summary" aria-label="Order summary">
+        <h2 class="checkout__summary-title">{{ 'cart.summary' | translate }}</h2>
+
+        <ul class="checkout__summary-list">
+          @for (item of items(); track item._id) {
+            @if (item.type === 'gift-box' && item.giftBox) {
+              <li class="checkout__summary-item checkout__summary-item--gift">
+                <div class="checkout__summary-media">
+                  @if (item.giftBox.boxImageUrl) {
+                    <img
+                      [src]="item.giftBox.boxImageUrl | safeImage"
+                      [alt]="item.giftBox.boxName | localized"
+                      class="checkout__summary-image img-fallback"
+                    />
+                  } @else {
+                    <div class="checkout__summary-image img-fallback" aria-hidden="true"></div>
+                  }
+                </div>
+                <div class="checkout__summary-info">
+                  <p class="checkout__summary-name">{{ item.giftBox.boxName | localized }}</p>
+                  <p class="checkout__summary-meta">
+                    {{ item.giftBox.items.length }} {{ 'giftBuilder.items' | translate }}
+                  </p>
+                </div>
+                <span class="checkout__summary-price">{{ item.lineTotal ?? 0 | price }}</span>
+              </li>
+            } @else {
+              <li class="checkout__summary-item">
+                <div class="checkout__summary-media">
+                  @if (item.product?.imageUrl) {
+                    <img
+                      [src]="item.product!.imageUrl | safeImage"
+                      [alt]="item.product!.name | localized"
+                      class="checkout__summary-image img-fallback"
+                    />
+                  } @else {
+                    <div class="checkout__summary-image img-fallback" aria-hidden="true"></div>
+                  }
+                  <span class="checkout__summary-qty">{{ item.quantity }}</span>
+                </div>
+                <div class="checkout__summary-info">
+                  <p class="checkout__summary-name">
+                    {{ item.product ? (item.product.name | localized) : 'Item' }}
+                  </p>
+                </div>
+                <span class="checkout__summary-price">{{ item.lineTotal ?? 0 | price }}</span>
+              </li>
+            }
+          }
+        </ul>
+
+        <div class="checkout__summary-divider"></div>
+
+        <div class="checkout__summary-row">
+          <span>{{ 'cart.subtotal' | translate }}</span>
+          <span>{{ subtotal() | price }}</span>
+        </div>
+        <div class="checkout__summary-row">
+          <span>{{ 'cart.shipping' | translate }}</span>
+          <span>{{ 'cart.calculatedAtCheckout' | translate }}</span>
+        </div>
+
+        <div class="checkout__summary-divider"></div>
+
+        <div class="checkout__summary-total">
+          <span>{{ 'cart.total' | translate }}</span>
+          <span>{{ subtotal() | price }}</span>
+        </div>
+
+        @if (hasUnavailable()) {
+          <div class="checkout__summary-warning" role="alert">
+            {{ 'cart.unavailableWarning' | translate }}
+          </div>
+        }
+      </aside>
+    </div>
+  }
+</section>

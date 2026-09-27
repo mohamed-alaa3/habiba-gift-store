@@ -1,0 +1,107 @@
+<div class="filters">
+  <!-- Categories -->
+  <div class="filters__group">
+    <h3 class="filters__title">{{ 'shop.filterCategories' | translate }}</h3>
+    <ul class="filters__list">
+      <li>
+        <button
+          type="button"
+          class="filters__option"
+          [class.is-active]="!draft().category"
+          (click)="draft().category ? toggleCategory(draft().category!) : null"
+        >
+          {{ 'shop.allProducts' | translate }}
+        </button>
+      </li>
+      @for (cat of categories(); track cat._id) {
+        <li>
+          <button
+            type="button"
+            class="filters__option"
+            [class.is-active]="isCategoryActive(cat._id)"
+            (click)="toggleCategory(cat._id)"
+          >
+            {{ cat.name | localized }}
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <!-- Price -->
+  <div class="filters__group">
+    <h3 class="filters__title">{{ 'shop.filterPrice' | translate }}</h3>
+    <div class="filters__price">
+      <input
+        type="number"
+        class="filters__price-input"
+        [placeholder]="'shop.min' | translate"
+        [value]="minPriceInput() ?? ''"
+        (input)="minPriceInput.set(+($any($event.target).value) || null)"
+        min="0"
+      />
+      <span class="filters__price-sep">—</span>
+      <input
+        type="number"
+        class="filters__price-input"
+        [placeholder]="'shop.max' | translate"
+        [value]="maxPriceInput() ?? ''"
+        (input)="maxPriceInput.set(+($any($event.target).value) || null)"
+        min="0"
+      />
+    </div>
+    <button type="button" class="filters__apply" (click)="applyPrice()">
+      {{ 'shop.applyPrice' | translate }}
+    </button>
+  </div>
+
+  <!-- Rating -->
+  <div class="filters__group">
+    <h3 class="filters__title">{{ 'shop.filterRating' | translate }}</h3>
+    <ul class="filters__list">
+      @for (r of ratingOptions; track r) {
+        <li>
+          <button
+            type="button"
+            class="filters__option"
+            [class.is-active]="isRatingActive(r)"
+            (click)="toggleRating(r)"
+          >
+            {{ r }}★ & {{ 'shop.andUp' | translate }}
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <!-- Availability -->
+  <div class="filters__group">
+    <h3 class="filters__title">{{ 'shop.filterAvailability' | translate }}</h3>
+    <ul class="filters__list">
+      <li>
+        <button
+          type="button"
+          class="filters__option"
+          [class.is-active]="draft().inStock"
+          (click)="toggleInStock()"
+        >
+          {{ 'shop.inStock' | translate }}
+        </button>
+      </li>
+      <li>
+        <button
+          type="button"
+          class="filters__option"
+          [class.is-active]="draft().onSale"
+          (click)="toggleOnSale()"
+        >
+          {{ 'shop.onSale' | translate }}
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <button type="button" class="filters__reset" (click)="reset()">
+    {{ 'shop.resetFilters' | translate }}
+  </button>
+</div>

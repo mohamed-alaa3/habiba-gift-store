@@ -1,0 +1,44 @@
+<section class="instagram-feed" aria-labelledby="instagram-feed-title">
+  <header class="instagram-feed__header">
+    <a
+      [href]="profileUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="instagram-feed__handle"
+      aria-label="Visit Habiba Store on Instagram"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37zM17.5 6.5h.01"/></svg>
+      <span>{{ 'home.instagram.eyebrow' | translate }}</span>
+    </a>
+
+    <h2 id="instagram-feed-title" class="instagram-feed__title">
+      {{ 'home.instagram.title' | translate }}
+    </h2>
+    <p class="instagram-feed__subtitle">
+      {{ 'home.instagram.subtitle' | translate }}
+    </p>
+  </header>
+
+  <div class="instagram-feed__grid">
+    @for (post of posts; track post.id) {
+      <a
+        [href]="post.url"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="instagram-feed__item"
+        [attr.aria-label]="post.alt"
+      >
+<img
+  [src]="post.image"
+  [alt]="post.alt"
+  loading="lazy"
+  decoding="async"
+  class="instagram-feed__image img-fallback"
+/>
+        <div class="instagram-feed__overlay" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37zM17.5 6.5h.01"/></svg>
+        </div>
+      </a>
+    }
+  </div>
+</section>

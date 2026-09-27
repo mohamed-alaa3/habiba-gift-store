@@ -1,0 +1,552 @@
+// ==========================================
+// Motion System — Habiba Store
+// ==========================================
+// Reusable animations used across the app.
+// Tokens: --motion-duration-*, --motion-ease-*, --motion-dir-*.
+
+// ====================
+// Keyframes
+// ====================
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fade-out {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes slide-up-in {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slide-down-in {
+    from {
+        opacity: 0;
+        transform: translateY(-16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slide-in-from-start {
+    from {
+        transform: translateX(var(--motion-dir-start, -100%));
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes slide-in-from-end {
+    from {
+        transform: translateX(var(--motion-dir-end, 100%));
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes scale-out {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes pulse-soft {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+@keyframes bounce-in {
+    0% {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+
+    60% {
+        transform: scale(1.06);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// ====================
+// Utility classes
+// ====================
+
+.animate-fade-in {
+    animation: fade-in var(--motion-duration-base) var(--motion-ease-out) both;
+}
+
+.animate-fade-out {
+    animation: fade-out var(--motion-duration-base) var(--motion-ease-in-out) both;
+}
+
+.animate-slide-up {
+    animation: slide-up-in var(--motion-duration-slow) var(--motion-ease-out) both;
+}
+
+.animate-slide-down {
+    animation: slide-down-in var(--motion-duration-slow) var(--motion-ease-out) both;
+}
+
+.animate-slide-in-start {
+    animation: slide-in-from-start var(--motion-duration-slow) var(--motion-ease-out) both;
+}
+
+.animate-slide-in-end {
+    animation: slide-in-from-end var(--motion-duration-slow) var(--motion-ease-out) both;
+}
+
+.animate-scale-in {
+    animation: scale-in var(--motion-duration-base) var(--motion-ease-out) both;
+}
+
+.animate-bounce-in {
+    animation: bounce-in var(--motion-duration-slow) var(--motion-ease-spring) both;
+}
+
+.animate-pulse-soft {
+    animation: pulse-soft 1.8s ease-in-out infinite;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+// ====================
+// Stagger children
+// ====================
+// Apply to a container; its direct children fade+slide in sequentially.
+
+.stagger-children>* {
+    animation: slide-up-in var(--motion-duration-slow) var(--motion-ease-out) both;
+    animation-delay: calc(var(--stagger-index, 0) * 60ms);
+}
+
+// Convenience: apply stagger index via nth-child for up to 20 items
+.stagger-children>*:nth-child(1) {
+    --stagger-index: 0;
+}
+
+.stagger-children>*:nth-child(2) {
+    --stagger-index: 1;
+}
+
+.stagger-children>*:nth-child(3) {
+    --stagger-index: 2;
+}
+
+.stagger-children>*:nth-child(4) {
+    --stagger-index: 3;
+}
+
+.stagger-children>*:nth-child(5) {
+    --stagger-index: 4;
+}
+
+.stagger-children>*:nth-child(6) {
+    --stagger-index: 5;
+}
+
+.stagger-children>*:nth-child(7) {
+    --stagger-index: 6;
+}
+
+.stagger-children>*:nth-child(8) {
+    --stagger-index: 7;
+}
+
+.stagger-children>*:nth-child(9) {
+    --stagger-index: 8;
+}
+
+.stagger-children>*:nth-child(10) {
+    --stagger-index: 9;
+}
+
+.stagger-children>*:nth-child(11) {
+    --stagger-index: 10;
+}
+
+.stagger-children>*:nth-child(12) {
+    --stagger-index: 11;
+}
+
+// ====================
+// Reveal on scroll
+// ====================
+// The .is-visible class is added by the RevealOnScroll directive
+// using IntersectionObserver.
+
+.reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+        opacity var(--motion-duration-slower) var(--motion-ease-out),
+        transform var(--motion-duration-slower) var(--motion-ease-out);
+    will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+// Variants
+.reveal-from-start {
+    transform: translateX(var(--motion-dir-start, -24px));
+}
+
+.reveal-from-end {
+    transform: translateX(var(--motion-dir-end, 24px));
+}
+
+.reveal-scale {
+    transform: scale(0.94);
+}
+
+// ====================
+// Hover micro-interactions
+// ====================
+
+.hover-lift {
+    transition:
+        transform var(--transition-base),
+        box-shadow var(--transition-base);
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+}
+
+.hover-scale {
+    transition: transform var(--transition-base);
+
+    &:hover {
+        transform: scale(1.03);
+    }
+}
+
+.hover-brighten {
+    transition: filter var(--transition-fast);
+
+    &:hover {
+        filter: brightness(1.05);
+    }
+}
+
+// ====================
+// Page transitions (router)
+// ====================
+
+.route-fade-enter {
+    animation: fade-in var(--motion-duration-base) var(--motion-ease-out) both;
+}
+
+.route-slide-enter {
+    animation: slide-up-in var(--motion-duration-slow) var(--motion-ease-out) both;
+}
+
+// ====================
+// Skeleton shimmer
+// ====================
+
+.skeleton {
+    background: linear-gradient(90deg,
+            var(--bg-muted) 0%,
+            var(--surface-hover) 50%,
+            var(--bg-muted) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s linear infinite;
+    border-radius: var(--radius-md);
+}
+
+// ====================
+// Reduced motion
+// ====================
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .reveal {
+        opacity: 1;
+        transform: none;
+    }
+}
+// ==========================================
+// Scroll reveal — used by RevealOnScrollDirective
+// ==========================================
+// The base .reveal class is hidden; the directive adds .is-visible
+// once the element enters the viewport.
+
+.reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition:
+        opacity 700ms var(--motion-ease-out),
+        transform 700ms var(--motion-ease-out);
+    will-change: opacity, transform;
+}
+
+.reveal.reveal-from-start {
+    transform: translateX(-40px);
+}
+
+.reveal.reveal-from-end {
+    transform: translateX(40px);
+}
+
+.reveal.reveal-scale {
+    transform: scale(0.94);
+}
+
+.reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0) translateX(0) scale(1);
+}
+
+// Stagger children — children animate in sequentially
+.stagger-children>* {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+        opacity 600ms var(--motion-ease-out),
+        transform 600ms var(--motion-ease-out);
+}
+
+.stagger-children.is-visible>* {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+// Generate delays for up to 12 children
+@for $i from 1 through 12 {
+    .stagger-children.is-visible>*:nth-child(#{$i}) {
+        transition-delay: #{($i - 1) * 70}ms;
+    }
+}
+
+// ==========================================
+// Reduced motion — keep everything instant
+// ==========================================
+@media (prefers-reduced-motion: reduce) {
+
+    .reveal,
+    .stagger-children>* {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+}
+// ==========================================
+// View Transitions (Router)
+// ==========================================
+
+// Default: smooth fade + subtle slide
+::view-transition-old(root) {
+    animation: view-fade-out 200ms var(--motion-ease-out) both;
+}
+
+::view-transition-new(root) {
+    animation: view-fade-in 300ms var(--motion-ease-out) both;
+}
+
+@keyframes view-fade-out {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes view-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Reduced motion — instant
+@media (prefers-reduced-motion: reduce) {
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none !important;
+    }
+}
+// ==========================================
+// Page entry animation — applies to every route component
+// ==========================================
+
+// Any route component that uses :host will get this
+.page-enter {
+    animation: page-slide-in 500ms var(--motion-ease-out) both;
+}
+
+@keyframes page-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page-enter {
+        animation: none;
+    }
+}
+// ==========================================
+// Content fade-in after loading
+// ==========================================
+
+@keyframes content-reveal {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.content-reveal {
+    animation: content-reveal 400ms var(--motion-ease-out) both;
+}
+// ==========================================
+// Lazy image fade-in (CSS-only)
+// ==========================================
+
+img[loading='lazy'] {
+    animation: img-fade-in 500ms var(--motion-ease-out) 200ms both;
+}
+
+@keyframes img-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    img[loading='lazy'] {
+        animation: none !important;
+    }
+}
+// ==========================================
+// Skeleton → content crossfade
+// ==========================================
+
+@keyframes content-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.content-fade-in {
+    animation: content-fade-in 300ms var(--motion-ease-out) both;
+}

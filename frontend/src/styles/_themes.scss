@@ -1,0 +1,92 @@
+// ==========================================
+// Themes — Light & Dark
+// ==========================================
+// These are applied to :root (light default)
+// and to [data-theme="dark"] (when toggled).
+
+:root {
+    // Backgrounds
+    --bg: #FFFFFF;
+    --bg-elevated: #FAFAFA;
+    --bg-muted: #F5F5F5;
+
+    // Surfaces (cards, panels)
+    --surface: #FFFFFF;
+    --surface-hover: #F9F9F9;
+
+    // Text
+    --text: #1F1F1F;
+    --text-muted: #555555;
+    --text-subtle: #8A8A8A;
+
+    // Borders
+    --border: #EAEAEA;
+    --border-strong: #D4D4D4;
+
+    // Status
+    --success: #16A34A;
+    --success-soft: #DCFCE7;
+    --warning: #D97706;
+    --warning-soft: #FEF3C7;
+    --danger: #DC2626;
+    --danger-soft: #FEE2E2;
+    --info: #2563EB;
+    --info-soft: #DBEAFE;
+
+    // Scrollbar
+    --scrollbar-thumb: #C9C9C9;
+    --scrollbar-track: #F0F0F0;
+
+    // Overlay (drawer/modal backdrop)
+    --overlay: rgba(0, 0, 0, 0.45);
+
+    color-scheme: light;
+}
+
+[data-theme='dark'] {
+    // Backgrounds
+    --bg: #121212;
+    --bg-elevated: #1A1A1A;
+    --bg-muted: #202020;
+
+    // Surfaces
+    --surface: #1E1E1E;
+    --surface-hover: #262626;
+
+    // Text
+    --text: #F2F2F2;
+    --text-muted: #B5B5B5;
+    --text-subtle: #7A7A7A;
+
+    // Borders
+    --border: #2E2E2E;
+    --border-strong: #3D3D3D;
+
+    // Status (slightly brighter for dark bg contrast)
+    --success: #22C55E;
+    --success-soft: #052E16;
+    --warning: #F59E0B;
+    --warning-soft: #3B2600;
+    --danger: #EF4444;
+    --danger-soft: #3B0B0B;
+    --info: #3B82F6;
+    --info-soft: #0C1F44;
+
+    // Scrollbar
+    --scrollbar-thumb: #3A3A3A;
+    --scrollbar-track: #1A1A1A;
+
+    // Overlay
+    --overlay: rgba(0, 0, 0, 0.65);
+
+    color-scheme: dark;
+}
+
+// Smooth theme transitions (opt-in via .theme-transition on <html>)
+html.theme-transition,
+html.theme-transition * {
+    transition:
+        background-color var(--motion-duration-base) var(--motion-ease-out),
+        border-color var(--motion-duration-base) var(--motion-ease-out),
+        color var(--motion-duration-base) var(--motion-ease-out);
+}
