@@ -27,9 +27,8 @@ import { TrustBadgesComponent } from './components/trust-badges/trust-badges.com
   template: `
     <app-hero />
 
-    <div appRevealOnScroll variant="up">
-      <app-shop-by-category />
-    </div>
+    <!-- shop-by-category reveals its own header + card grid internally -->
+    <app-shop-by-category />
 
     <div appRevealOnScroll variant="up">
       <app-best-sellers />

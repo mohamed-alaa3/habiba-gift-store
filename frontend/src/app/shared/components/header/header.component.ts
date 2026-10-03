@@ -1,6 +1,6 @@
-import { CommonModule, DOCUMENT } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, HostListener, computed, inject, input, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { AuthStore } from '../../../core/stores/auth.store';
@@ -10,14 +10,15 @@ import { WishlistStore } from '../../../core/stores/wishlist.store';
 
 import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
+import { SearchBarComponent } from '../search-bar/search-bar.component';
 
 interface NavItem {
   labelKey: string;
   path: string;
 }
 
-const SCROLL_THRESHOLD = 100; // pixels before hiding kicks in
-const SCROLL_DELTA = 8; // minimum movement to trigger hide/show
+const SCROLL_THRESHOLD = 100;
+const SCROLL_DELTA = 8;
 
 @Component({
   selector: 'app-header',
@@ -29,6 +30,7 @@ const SCROLL_DELTA = 8; // minimum movement to trigger hide/show
     TranslatePipe,
     LanguageSwitcherComponent,
     ThemeToggleComponent,
+    SearchBarComponent,
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
@@ -38,20 +40,21 @@ export class HeaderComponent {
   private cartStore = inject(CartStore);
   private wishlistStore = inject(WishlistStore);
   private uiStore = inject(UiStore);
-  private doc = inject(DOCUMENT);
+  private router = inject(Router);
 
   readonly showNav = input<boolean>(true);
 
   protected readonly isScrolled = signal(false);
   protected readonly isHidden = signal(false);
   protected readonly mobileMenuOpen = signal(false);
+  /** Mobile search bar visibility */
+  protected readonly mobileSearchOpen = signal(false);
 
   protected readonly isAuthenticated = this.authStore.isAuthenticated;
   protected readonly currentUser = this.authStore.user;
   protected readonly cartCount = this.cartStore.itemCount;
   protected readonly wishlistCount = this.wishlistStore.count;
 
-  /** Dynamic account link: admin → /admin, customer → /account */
   protected readonly accountLink = computed(() => {
     const user = this.currentUser();
     if (!user) return '/auth/login';
@@ -75,7 +78,6 @@ export class HeaderComponent {
   private lastScrollY = 0;
 
   constructor() {
-    // Initialize on first paint
     this.lastScrollY = window.scrollY || 0;
     this.updateScrollState(this.lastScrollY);
   }
@@ -86,37 +88,42 @@ export class HeaderComponent {
   }
 
   private updateScrollState(y: number): void {
-    // 1) Scrolled shadow
     this.isScrolled.set(y > 8);
 
-    // 2) Hide-on-scroll-down logic
     const diff = y - this.lastScrollY;
 
-    // Reset hide if:
-    // - We're near the top
-    // - The mobile menu is open
-    // - The cart drawer is open
-    // - The search overlay is open
     if (y < SCROLL_THRESHOLD || this.mobileMenuOpen() || this.uiStore.anyOverlayOpen()) {
       this.isHidden.set(false);
       this.lastScrollY = y;
       return;
     }
 
-    // Only react if the movement is significant (prevents jitter)
     if (Math.abs(diff) < SCROLL_DELTA) return;
 
-    // Downward scroll → hide
     if (diff > 0) {
       this.isHidden.set(true);
     } else {
-      // Upward scroll → show
       this.isHidden.set(false);
     }
 
     this.lastScrollY = y;
   }
 
+  /** Desktop search bar submission */
+  protected onSearchSubmit(query: string): void {
+    const q = (query || '').trim();
+    if (!q) return;
+
+    this.uiStore.closeSearch();
+    this.router.navigate(['/shop'], { queryParams: { q } });
+  }
+
+  /** Mobile: toggle the inline search bar */
+  protected toggleMobileSearch(): void {
+    this.mobileSearchOpen.update((v) => !v);
+  }
+
+  /** (Keep for backwards compat) — not used if the desktop bar is visible */
   protected openSearch(): void {
     this.uiStore.openSearch();
   }

@@ -11,6 +11,7 @@ import { ToastService } from '../../../../core/services/toast.service';
 import { Address, AddressPayload } from '../../../../core/models';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
+import { RevealOnScrollDirective } from '../../../../shared/directives/reveal-on-scroll.directive';
 
 type LoadState = 'loading' | 'success' | 'empty' | 'error';
 type ModalMode = 'closed' | 'add' | 'edit';
@@ -20,7 +21,7 @@ const FETCH_TIMEOUT_MS = 8000;
 @Component({
   selector: 'app-account-addresses',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslatePipe, EmptyStateComponent, LoaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipe, EmptyStateComponent, LoaderComponent, RevealOnScrollDirective],
   templateUrl: './addresses.component.html',
   styleUrl: './addresses.component.scss',
 })

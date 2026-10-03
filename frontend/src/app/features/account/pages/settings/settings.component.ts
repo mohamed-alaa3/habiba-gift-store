@@ -8,13 +8,14 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../../../core/services/auth.service';
 import { AuthStore } from '../../../../core/stores/auth.store';
 import { ToastService } from '../../../../core/services/toast.service';
+import { RevealOnScrollDirective } from '../../../../shared/directives/reveal-on-scroll.directive';
 
 const FETCH_TIMEOUT_MS = 8000;
 
 @Component({
   selector: 'app-account-settings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslatePipe],
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipe, RevealOnScrollDirective],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
 })

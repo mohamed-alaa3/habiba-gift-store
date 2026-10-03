@@ -8,6 +8,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { CartService } from '../../core/services/cart.service';
 import { CartStore } from '../../core/stores/cart.store';
 import { AuthStore } from '../../core/stores/auth.store';
+import { CouponStore } from '../../core/stores/coupon.store';
 import { ToastService } from '../../core/services/toast.service';
 
 import { CartItem } from '../../core/models';
@@ -17,6 +18,8 @@ import { SafeImagePipe } from '../../shared/pipes/safe-image.pipe';
 import { QuantityStepperComponent } from '../../shared/components/quantity-stepper/quantity-stepper.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
+import { CouponInputComponent } from '../../shared/components/coupon-input/coupon-input.component';
+import { RevealOnScrollDirective } from '../../shared/directives/reveal-on-scroll.directive';
 
 type LoadState = 'loading' | 'success' | 'empty' | 'error';
 
@@ -35,6 +38,8 @@ const FETCH_TIMEOUT_MS = 8000;
     QuantityStepperComponent,
     EmptyStateComponent,
     LoaderComponent,
+    CouponInputComponent,
+    RevealOnScrollDirective,
   ],
   templateUrl: './cart.page.html',
   styleUrl: './cart.page.scss',
@@ -43,6 +48,7 @@ export class CartPage implements OnInit {
   private cartService = inject(CartService);
   private cartStore = inject(CartStore);
   private authStore = inject(AuthStore);
+  private couponStore = inject(CouponStore);
   private toast = inject(ToastService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
@@ -51,6 +57,12 @@ export class CartPage implements OnInit {
   protected readonly items = computed<CartItem[]>(() => this.cartStore.items());
   protected readonly subtotal = this.cartStore.subtotal;
   protected readonly hasUnavailable = this.cartStore.hasUnavailable;
+
+  /** Discount from the applied coupon (calculated by the backend, display only). */
+  protected readonly discount = this.couponStore.discount;
+  protected readonly total = computed(() =>
+    Math.max(0, Math.round((this.subtotal() - this.discount()) * 100) / 100),
+  );
 
   protected readonly state = signal<LoadState>('loading');
   protected readonly updatingItemId = signal<string | null>(null);
@@ -82,7 +94,7 @@ export class CartPage implements OnInit {
           this.state.set('error');
           return;
         }
-        this.state.set(res.data.items.length > 0 ? 'success' : 'empty');
+        this.applyCartState(res.data.items.length);
       });
   }
 
@@ -100,7 +112,7 @@ export class CartPage implements OnInit {
       .subscribe((res) => {
         this.updatingItemId.set(null);
         if (!res?.success) return;
-        this.state.set(res.data.items.length > 0 ? 'success' : 'empty');
+        this.applyCartState(res.data.items.length);
       });
   }
 
@@ -119,7 +131,7 @@ export class CartPage implements OnInit {
         this.updatingItemId.set(null);
         if (!res?.success) return;
         this.toast.success('Item removed');
-        this.state.set(res.data.items.length > 0 ? 'success' : 'empty');
+        this.applyCartState(res.data.items.length);
       });
   }
 
@@ -132,8 +144,17 @@ export class CartPage implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((res) => {
-        if (res?.success) this.state.set('empty');
+        if (res?.success) {
+          this.couponStore.clear();
+          this.state.set('empty');
+        }
       });
+  }
+
+  /** Sync page state with the cart; an empty cart can't carry a coupon. */
+  private applyCartState(itemCount: number): void {
+    if (itemCount === 0) this.couponStore.clear();
+    this.state.set(itemCount > 0 ? 'success' : 'empty');
   }
 
   protected goToShop(): void {

@@ -55,7 +55,6 @@
         max-width: 800px;
         margin-inline: auto;
         margin-bottom: 2.5rem;
-        animation: gift-hero-in 700ms var(--motion-ease-out) both;
 
         @media (min-width: 1024px) {
             margin-bottom: 4rem;
@@ -303,14 +302,4 @@
     }
 }
 
-@keyframes gift-hero-in {
-    from {
-        opacity: 0;
-        transform: translateY(24px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+// (hero entrance is now handled by the shared appRevealOnScroll directive)

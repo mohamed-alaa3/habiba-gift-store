@@ -150,51 +150,69 @@
     }
 
     // ---------- Mobile drawer ----------
-    &__drawer-backdrop {
-        position: fixed;
-        inset: 0;
-        background-color: var(--overlay);
-        backdrop-filter: blur(2px);
-        z-index: calc(var(--z-drawer) - 1);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity var(--transition-base);
+&__drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: var(--overlay);
+    backdrop-filter: blur(2px);
+    z-index: calc(var(--z-drawer) - 1);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+        opacity var(--transition-base),
+        visibility 0s linear var(--transition-base);
 
-        &.is-open {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        @media (min-width: 1024px) {
-            display: none;
-        }
+    &.is-open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transition:
+            opacity var(--transition-base),
+            visibility 0s linear 0s;
     }
 
-    &__drawer {
-        position: fixed;
-        top: 0;
-        bottom: 0;
-        inset-inline-start: 0;
-        width: min(340px, 88vw);
-        background-color: var(--surface);
-        z-index: var(--z-drawer);
-        display: flex;
-        flex-direction: column;
-        transform: translateX(-100%);
-        transition: transform var(--motion-duration-base) var(--motion-ease-out);
-
-        [dir='rtl'] & {
-            transform: translateX(100%);
-        }
-
-        &.is-open {
-            transform: translateX(0);
-        }
-
-        @media (min-width: 1024px) {
-            display: none;
-        }
+    @media (min-width: 1024px) {
+        display: none;
     }
+}
+
+&__drawer {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    inset-inline-start: 0;
+    width: min(340px, 88vw);
+    background-color: var(--surface);
+    z-index: var(--z-drawer);
+    display: flex;
+    flex-direction: column;
+
+    // Hidden state — must work in both LTR and RTL.
+    transform: translateX(-100%);
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+        transform var(--motion-duration-base) var(--motion-ease-out),
+        visibility 0s linear var(--motion-duration-base);
+
+    [dir='rtl'] & {
+        transform: translateX(100%);
+    }
+
+    &.is-open {
+        transform: translateX(0);
+        visibility: visible;
+        pointer-events: auto;
+        transition:
+            transform var(--motion-duration-base) var(--motion-ease-out),
+            visibility 0s linear 0s;
+    }
+
+    @media (min-width: 1024px) {
+        display: none;
+    }
+}
 
     &__drawer-header {
         display: flex;

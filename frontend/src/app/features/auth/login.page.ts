@@ -14,6 +14,7 @@ import { WishlistService } from '../../core/services/wishlist.service';
 import { AuthPanelComponent } from './components/auth-panel/auth-panel.component';
 import { ForgotPasswordModalComponent } from './components/forgot-password-modal/forgot-password-modal.component';
 import { VerifyEmailModalComponent } from './components/verify-email-modal/verify-email-modal.component';
+import { RevealOnScrollDirective } from '../../shared/directives/reveal-on-scroll.directive';
 
 const FETCH_TIMEOUT_MS = 10000;
 
@@ -28,6 +29,7 @@ const FETCH_TIMEOUT_MS = 10000;
     AuthPanelComponent,
     ForgotPasswordModalComponent,
     VerifyEmailModalComponent,
+    RevealOnScrollDirective,
   ],
   templateUrl: './login.page.html',
   styleUrl: './auth.page.scss',

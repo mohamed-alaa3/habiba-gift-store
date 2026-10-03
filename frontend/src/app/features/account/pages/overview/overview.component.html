@@ -1,5 +1,5 @@
 <div class="overview">
-  <header class="overview__header">
+  <header class="overview__header" appRevealOnScroll>
     <h1 class="overview__title">
       {{ 'account.welcomeBack' | translate }}, {{ firstName() }}!
     </h1>
@@ -8,7 +8,7 @@
     </p>
   </header>
 
-  <div class="overview__stats">
+  <div class="overview__stats" appRevealOnScroll [stagger]="true">
     <div class="overview__stat">
       <p class="overview__stat-label">Cart Items</p>
       <p class="overview__stat-value">{{ cartCount() }}</p>

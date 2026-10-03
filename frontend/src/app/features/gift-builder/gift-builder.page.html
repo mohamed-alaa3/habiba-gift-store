@@ -18,7 +18,7 @@
 
   @if (loadState() === 'ready') {
     <!-- Hero -->
-    <header class="gift-builder__hero">
+    <header class="gift-builder__hero" appRevealOnScroll>
       <p class="gift-builder__eyebrow">{{ 'giftBuilder.eyebrow' | translate }}</p>
       <h1 class="gift-builder__title">{{ 'giftBuilder.title' | translate }}</h1>
       <p class="gift-builder__subtitle">{{ 'giftBuilder.subtitle' | translate }}</p>
@@ -63,43 +63,51 @@
         <div class="gift-builder__content">
           @switch (step()) {
             @case ('box') {
-              <app-gift-box-picker
-                [boxes]="boxes()"
-                [selectedId]="box()?._id ?? null"
-                (select)="onSelectBox($event)"
-              />
+              <div appRevealOnScroll>
+                <app-gift-box-picker
+                  [boxes]="boxes()"
+                  [selectedId]="box()?._id ?? null"
+                  (select)="onSelectBox($event)"
+                />
+              </div>
             }
             @case ('items') {
-              <app-gift-item-picker
-                [products]="products()"
-                [selectedItems]="items()"
-                [remaining]="remaining()"
-                [isFull]="isFull()"
-                (addItem)="onAddItem($event)"
-                (removeItem)="onRemoveItem($event)"
-              />
+              <div appRevealOnScroll>
+                <app-gift-item-picker
+                  [products]="products()"
+                  [selectedItems]="items()"
+                  [remaining]="remaining()"
+                  [isFull]="isFull()"
+                  (addItem)="onAddItem($event)"
+                  (removeItem)="onRemoveItem($event)"
+                />
+              </div>
             }
             @case ('wrap') {
-              <app-gift-wrap-picker
-                [wrapStyles]="wrapStyles()"
-                [ribbons]="ribbons()"
-                [selectedWrapId]="wrapStyle()?._id ?? null"
-                [selectedRibbonId]="ribbon()?._id ?? null"
-                [note]="selection().note"
-                (selectWrap)="onSelectWrap($event)"
-                (selectRibbon)="onSelectRibbon($event)"
-                (noteChange)="onNoteChange($event)"
-              />
+              <div appRevealOnScroll>
+                <app-gift-wrap-picker
+                  [wrapStyles]="wrapStyles()"
+                  [ribbons]="ribbons()"
+                  [selectedWrapId]="wrapStyle()?._id ?? null"
+                  [selectedRibbonId]="ribbon()?._id ?? null"
+                  [note]="selection().note"
+                  (selectWrap)="onSelectWrap($event)"
+                  (selectRibbon)="onSelectRibbon($event)"
+                  (noteChange)="onNoteChange($event)"
+                />
+              </div>
             }
             @case ('review') {
-              <app-gift-review-panel
-                [box]="box()"
-                [items]="items()"
-                [wrapStyle]="wrapStyle()"
-                [ribbon]="ribbon()"
-                [note]="selection().note"
-                [subtotal]="subtotal()"
-              />
+              <div appRevealOnScroll>
+                <app-gift-review-panel
+                  [box]="box()"
+                  [items]="items()"
+                  [wrapStyle]="wrapStyle()"
+                  [ribbon]="ribbon()"
+                  [note]="selection().note"
+                  [subtotal]="subtotal()"
+                />
+              </div>
             }
           }
         </div>
@@ -131,7 +139,7 @@
       </div>
 
       <!-- RIGHT: Live Preview -->
-      <aside class="gift-builder__aside">
+      <aside class="gift-builder__aside" appRevealOnScroll variant="fade">
         <app-gift-box-preview
           [box]="box()"
           [items]="items()"

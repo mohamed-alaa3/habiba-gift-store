@@ -1,5 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  HostListener,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, of, timeout } from 'rxjs';
@@ -21,11 +29,13 @@ import { ProductGridComponent } from './components/product-grid/product-grid.com
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { SkeletonCardComponent } from '../../shared/components/skeleton-card/skeleton-card.component';
+import { RevealOnScrollDirective } from '../../shared/directives/reveal-on-scroll.directive';
 
 type LoadState = 'loading' | 'success' | 'empty' | 'error';
 
 const FETCH_TIMEOUT_MS = 8000;
 const DEFAULT_LIMIT = 12;
+const DESKTOP_BREAKPOINT = 1024;
 
 @Component({
   selector: 'app-shop-page',
@@ -39,6 +49,7 @@ const DEFAULT_LIMIT = 12;
     PaginationComponent,
     EmptyStateComponent,
     SkeletonCardComponent,
+    RevealOnScrollDirective,
   ],
   templateUrl: './shop.page.html',
   styleUrl: './shop.page.scss',
@@ -73,6 +84,7 @@ export class ShopPage implements OnInit {
   protected readonly hasFilters = computed(() => {
     const f = this.filters();
     return !!(
+      f.search ||
       f.category ||
       f.minPrice != null ||
       f.maxPrice != null ||
@@ -85,6 +97,7 @@ export class ShopPage implements OnInit {
   protected readonly activeFiltersCount = computed(() => {
     const f = this.filters();
     let n = 0;
+    if (f.search) n++;
     if (f.category) n++;
     if (f.minPrice != null) n++;
     if (f.maxPrice != null) n++;
@@ -93,6 +106,29 @@ export class ShopPage implements OnInit {
     if (f.onSale) n++;
     return n;
   });
+
+  // --- Drawer safety ---
+  // When the viewport grows to desktop size, the mobile drawer must not
+  // stay "open" in state — otherwise shrinking back would reveal it
+  // unexpectedly. This also handles orientation changes on phones.
+  @HostListener('window:resize')
+  protected onWindowResize(): void {
+    if (
+      typeof window !== 'undefined' &&
+      window.innerWidth >= DESKTOP_BREAKPOINT &&
+      this.filtersOpen()
+    ) {
+      this.filtersOpen.set(false);
+    }
+  }
+
+  // Close the drawer with the Escape key for a11y.
+  @HostListener('document:keydown.escape')
+  protected onEscape(): void {
+    if (this.filtersOpen()) {
+      this.filtersOpen.set(false);
+    }
+  }
 
   ngOnInit(): void {
     // Read initial state from query params (deep-link friendly)
@@ -117,8 +153,10 @@ export class ShopPage implements OnInit {
 
       const page = Number(params.get('page') ?? 1) || 1;
       this.currentPage.set(page);
-
+      const q = params.get('q');
+      if (q) nextFilters.search = q;
       this.filters.set(nextFilters);
+      this.loadProducts();
     });
 
     this.loadCategories();
@@ -148,11 +186,21 @@ export class ShopPage implements OnInit {
   protected loadProducts(): void {
     this.state.set('loading');
 
+    const f = this.filters();
+
     const query: ProductQuery = {
       page: this.currentPage(),
       limit: this.pageSize(),
       sort: this.sort(),
-      ...this.filters(),
+      // Map our internal `search` to the backend's `q`
+      q: f.search,
+      category: f.category,
+      minPrice: f.minPrice,
+      maxPrice: f.maxPrice,
+      rating: f.rating,
+      inStock: f.inStock,
+      // ⚠️ onSale مش مدعوم في الـbackend حالياً — لو ضفته في الـProductQuery
+      //    في المستقبل، فعّله هنا.
     };
 
     this.productService
@@ -225,6 +273,7 @@ export class ShopPage implements OnInit {
   private syncUrl(): void {
     const f = this.filters();
     const queryParams: Record<string, string | number | null> = {
+      q: f.search ?? null,
       category: f.category ?? null,
       minPrice: f.minPrice ?? null,
       maxPrice: f.maxPrice ?? null,

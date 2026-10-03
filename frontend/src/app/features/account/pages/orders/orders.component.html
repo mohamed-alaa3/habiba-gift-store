@@ -1,5 +1,5 @@
 <div class="account-orders">
-  <header class="account-orders__header">
+  <header class="account-orders__header" appRevealOnScroll>
     <div>
       <h1 class="account-orders__title">{{ 'account.orderHistory' | translate }}</h1>
       <p class="account-orders__subtitle">{{ 'account.orderHistoryDesc' | translate }}</p>
@@ -7,7 +7,7 @@
   </header>
 
   <!-- Filter pills -->
-  <div class="account-orders__filters" role="tablist">
+  <div class="account-orders__filters" role="tablist" appRevealOnScroll variant="fade">
     @for (opt of statusOptions; track opt.value) {
       <button
         type="button"
@@ -53,7 +53,7 @@
 
   <!-- Success -->
   @if (state() === 'success') {
-    <ul class="account-orders__list">
+    <ul class="account-orders__list" appRevealOnScroll [stagger]="true">
       @for (order of orders(); track order._id) {
         <li class="account-orders__item">
           <a [routerLink]="['/account/orders', order._id]" class="account-orders__link">

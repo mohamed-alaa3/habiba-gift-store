@@ -16,6 +16,7 @@ import { ItemPickerComponent } from './components/item-picker/item-picker.compon
 import { WrapPickerComponent } from './components/wrap-picker/wrap-picker.component';
 import { ReviewPanelComponent } from './components/review-panel/review-panel.component';
 import { BoxPreviewComponent } from './components/box-preview/box-preview.component';
+import { RevealOnScrollDirective } from '../../shared/directives/reveal-on-scroll.directive';
 
 const FETCH_TIMEOUT_MS = 10000;
 
@@ -39,6 +40,7 @@ interface StepDef {
     WrapPickerComponent,
     ReviewPanelComponent,
     BoxPreviewComponent,
+    RevealOnScrollDirective,
   ],
   templateUrl: './gift-builder.page.html',
   styleUrl: './gift-builder.page.scss',

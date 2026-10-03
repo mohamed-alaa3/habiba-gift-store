@@ -1,5 +1,5 @@
 <section class="cart-page">
-  <header class="cart-page__header">
+  <header class="cart-page__header" appRevealOnScroll>
     <h1 class="cart-page__title">{{ 'cart.pageTitle' | translate }}</h1>
   </header>
 
@@ -45,7 +45,7 @@
 
   <!-- Success -->
   @if (isAuthenticated() && state() === 'success') {
-    <div class="cart-page__layout">
+    <div class="cart-page__layout" appRevealOnScroll [stagger]="true">
       <!-- Items -->
       <div class="cart-page__main">
         @if (hasUnavailable()) {
@@ -69,6 +69,7 @@
                       [alt]="item.giftBox.boxName | localized"
                       class="cart-page__item-image img-fallback"
                       loading="lazy"
+                      decoding="async"
                     />
                   } @else {
                     <div class="cart-page__item-image img-fallback" aria-hidden="true"></div>
@@ -134,6 +135,7 @@
                       [alt]="item.product!.name | localized"
                       class="cart-page__item-image img-fallback"
                       loading="lazy"
+                      decoding="async"
                     />
                   } @else {
                     <div class="cart-page__item-image img-fallback" aria-hidden="true"></div>
@@ -205,10 +207,22 @@
       <aside class="cart-page__summary" aria-label="Order summary">
         <h2 class="cart-page__summary-title">{{ 'cart.summary' | translate }}</h2>
 
+        @if (isAuthenticated()) {
+          <app-coupon-input />
+          <div class="cart-page__summary-divider"></div>
+        }
+
         <div class="cart-page__summary-row">
           <span>{{ 'cart.subtotal' | translate }}</span>
           <span class="cart-page__summary-value">{{ subtotal() | price }}</span>
         </div>
+
+        @if (discount() > 0) {
+          <div class="cart-page__summary-row cart-page__summary-row--discount">
+            <span>{{ 'cart.discount' | translate }}</span>
+            <span class="cart-page__summary-value">-{{ discount() | price }}</span>
+          </div>
+        }
 
         <div class="cart-page__summary-row">
           <span>{{ 'cart.shipping' | translate }}</span>
@@ -219,7 +233,7 @@
 
         <div class="cart-page__summary-total">
           <span>{{ 'cart.total' | translate }}</span>
-          <span class="cart-page__summary-total-value">{{ subtotal() | price }}</span>
+          <span class="cart-page__summary-total-value">{{ total() | price }}</span>
         </div>
 
         <button

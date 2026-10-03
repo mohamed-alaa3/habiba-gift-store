@@ -267,6 +267,14 @@
         color: var(--text-muted);
     }
 
+    &__summary-row--discount {
+        color: var(--success);
+
+        .cart-page__summary-value {
+            color: var(--success);
+        }
+    }
+
     &__summary-value {
         color: var(--text);
         font-weight: 500;

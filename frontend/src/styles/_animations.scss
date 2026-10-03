@@ -185,95 +185,127 @@
 }
 
 // ====================
-// Stagger children
+// Reveal on scroll  (single source of truth)
 // ====================
-// Apply to a container; its direct children fade+slide in sequentially.
+// Driven by RevealOnScrollDirective (IntersectionObserver):
+//   - the directive adds `.reveal` (or `.reveal-group` when [stagger]) and
+//     later `.is-visible`;
+//   - before `.is-visible` the element (or the group's children) is
+//     `opacity: 0` — it stays in flow, so there is no layout shift;
+//   - on `.is-visible` a short keyframe animation plays from the hidden
+//     pose to the element's natural style. The keyframe only has a `from`
+//     frame and uses `fill-mode: backwards`, so nothing is left behind after
+//     it ends: no permanent transform, will-change or transition-delay.
+//
+// Everything is wrapped in `no-preference`: with reduced motion the hidden
+// state and the animation never exist, so content is always visible (this is
+// the CSS half of the guarantee; the directive adds `.is-visible` at once).
+//
+// Tokens (override per element or per section if ever needed):
+//   --reveal-distance  travel distance          (default 12px)
+//   --reveal-duration  animation length         (default 360ms)
+//   --reveal-stagger   step between children    (default 50ms)
+//   --reveal-delay     extra delay, set by the directive's [delay] input
 
+:root {
+    --reveal-distance: 28px;
+    --reveal-duration: 650ms;
+    --reveal-stagger: 90ms;
+    --reveal-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes reveal-in {
+    from {
+        opacity: 0;
+        transform: translate(var(--reveal-x, 0px), var(--reveal-y, var(--reveal-distance, 28px))) scale(var(--reveal-scale, 1));
+        filter: blur(6px);
+    }
+
+    to {
+        filter: blur(0);
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+
+    // --- Per-variant pose (inherited by the children of a group) ---------
+    .reveal,
+    .reveal-group {
+        --reveal-x: 0px;
+        --reveal-y: var(--reveal-distance);
+        --reveal-scale: 1;
+    }
+
+    .reveal-fade {
+        --reveal-y: 0px;
+    }
+
+    .reveal-scale {
+        --reveal-y: 0px;
+        --reveal-scale: 0.97;
+    }
+
+    // Horizontal variants follow the writing direction: "start" is the left
+    // in LTR and the right in RTL. Small offset (not ±100%) so nothing can
+    // ever poke past the viewport edge and cause horizontal scroll.
+    .reveal-from-start {
+        --reveal-y: 0px;
+        --reveal-x: calc(var(--reveal-distance) * -1);
+    }
+
+    .reveal-from-end {
+        --reveal-y: 0px;
+        --reveal-x: var(--reveal-distance);
+    }
+
+    [dir='rtl'] .reveal-from-start {
+        --reveal-x: var(--reveal-distance);
+    }
+
+    [dir='rtl'] .reveal-from-end {
+        --reveal-x: calc(var(--reveal-distance) * -1);
+    }
+
+    // --- Hidden until the observer says so --------------------------------
+    .reveal:not(.is-visible),
+    .reveal-group:not(.is-visible)>* {
+        opacity: 0;
+    }
+
+    // --- Single element ---------------------------------------------------
+        .reveal.is-visible {
+            animation: reveal-in var(--reveal-duration) var(--reveal-ease) backwards;
+            animation-delay: var(--reveal-delay, 0ms);
+        }
+    
+        .reveal-group.is-visible>* {
+            animation: reveal-in var(--reveal-duration) var(--reveal-ease) backwards;
+            animation-delay: calc(var(--reveal-delay, 0ms) + var(--reveal-i, 0) * var(--reveal-stagger));
+        }
+    
+        .stagger-children:not(.reveal-group)>* {
+            animation: reveal-in var(--reveal-duration) var(--reveal-ease) backwards;
+            animation-delay: calc(var(--reveal-i, 0) * var(--reveal-stagger));
+        }
+}
+
+// Stagger index — capped at 8 steps so long lists never drag on.
+.reveal-group>*,
 .stagger-children>* {
-    animation: slide-up-in var(--motion-duration-slow) var(--motion-ease-out) both;
-    animation-delay: calc(var(--stagger-index, 0) * 60ms);
+    --reveal-i: 0;
 }
 
-// Convenience: apply stagger index via nth-child for up to 20 items
-.stagger-children>*:nth-child(1) {
-    --stagger-index: 0;
+@for $i from 2 through 7 {
+
+    .reveal-group>*:nth-child(#{$i}),
+    .stagger-children>*:nth-child(#{$i}) {
+        --reveal-i: #{$i - 1};
+    }
 }
 
-.stagger-children>*:nth-child(2) {
-    --stagger-index: 1;
-}
-
-.stagger-children>*:nth-child(3) {
-    --stagger-index: 2;
-}
-
-.stagger-children>*:nth-child(4) {
-    --stagger-index: 3;
-}
-
-.stagger-children>*:nth-child(5) {
-    --stagger-index: 4;
-}
-
-.stagger-children>*:nth-child(6) {
-    --stagger-index: 5;
-}
-
-.stagger-children>*:nth-child(7) {
-    --stagger-index: 6;
-}
-
-.stagger-children>*:nth-child(8) {
-    --stagger-index: 7;
-}
-
-.stagger-children>*:nth-child(9) {
-    --stagger-index: 8;
-}
-
-.stagger-children>*:nth-child(10) {
-    --stagger-index: 9;
-}
-
-.stagger-children>*:nth-child(11) {
-    --stagger-index: 10;
-}
-
-.stagger-children>*:nth-child(12) {
-    --stagger-index: 11;
-}
-
-// ====================
-// Reveal on scroll
-// ====================
-// The .is-visible class is added by the RevealOnScroll directive
-// using IntersectionObserver.
-
-.reveal {
-    opacity: 0;
-    transform: translateY(24px);
-    transition:
-        opacity var(--motion-duration-slower) var(--motion-ease-out),
-        transform var(--motion-duration-slower) var(--motion-ease-out);
-    will-change: opacity, transform;
-}
-
-.reveal.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-// Variants
-.reveal-from-start {
-    transform: translateX(var(--motion-dir-start, -24px));
-}
-
-.reveal-from-end {
-    transform: translateX(var(--motion-dir-end, 24px));
-}
-
-.reveal-scale {
-    transform: scale(0.94);
+.reveal-group>*:nth-child(n + 8),
+.stagger-children>*:nth-child(n + 8) {
+    --reveal-i: 7;
 }
 
 // ====================
@@ -348,75 +380,6 @@
         scroll-behavior: auto !important;
     }
 
-    .reveal {
-        opacity: 1;
-        transform: none;
-    }
-}
-// ==========================================
-// Scroll reveal — used by RevealOnScrollDirective
-// ==========================================
-// The base .reveal class is hidden; the directive adds .is-visible
-// once the element enters the viewport.
-
-.reveal {
-    opacity: 0;
-    transform: translateY(32px);
-    transition:
-        opacity 700ms var(--motion-ease-out),
-        transform 700ms var(--motion-ease-out);
-    will-change: opacity, transform;
-}
-
-.reveal.reveal-from-start {
-    transform: translateX(-40px);
-}
-
-.reveal.reveal-from-end {
-    transform: translateX(40px);
-}
-
-.reveal.reveal-scale {
-    transform: scale(0.94);
-}
-
-.reveal.is-visible {
-    opacity: 1;
-    transform: translateY(0) translateX(0) scale(1);
-}
-
-// Stagger children — children animate in sequentially
-.stagger-children>* {
-    opacity: 0;
-    transform: translateY(20px);
-    transition:
-        opacity 600ms var(--motion-ease-out),
-        transform 600ms var(--motion-ease-out);
-}
-
-.stagger-children.is-visible>* {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-// Generate delays for up to 12 children
-@for $i from 1 through 12 {
-    .stagger-children.is-visible>*:nth-child(#{$i}) {
-        transition-delay: #{($i - 1) * 70}ms;
-    }
-}
-
-// ==========================================
-// Reduced motion — keep everything instant
-// ==========================================
-@media (prefers-reduced-motion: reduce) {
-
-    .reveal,
-    .stagger-children>* {
-        opacity: 1 !important;
-        transform: none !important;
-        transition: none !important;
-    }
 }
 // ==========================================
 // View Transitions (Router)

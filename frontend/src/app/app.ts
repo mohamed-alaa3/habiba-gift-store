@@ -6,6 +6,7 @@ import { CartStore } from './core/stores/cart.store';
 import { WishlistStore } from './core/stores/wishlist.store';
 import { LanguageService } from './core/services/language.service';
 import { ThemeService } from './core/services/theme.service';
+import { SeoService } from './core/services/seo.service';
 import { CartService } from './core/services/cart.service';
 import { WishlistService } from './core/services/wishlist.service';
 
@@ -25,11 +26,13 @@ export class App implements OnInit {
   private wishlistService = inject(WishlistService);
   private languageService = inject(LanguageService);
   private themeService = inject(ThemeService);
+  private seoService = inject(SeoService);
 
   ngOnInit(): void {
     this.authStore.initialize();
     this.languageService.initialize();
     this.themeService.initialize();
+    this.seoService.init();
 
     // Pre-load cart + wishlist if the user is authenticated
     if (this.authStore.isAuthenticated()) {

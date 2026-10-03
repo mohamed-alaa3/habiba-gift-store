@@ -433,6 +433,14 @@
         }
     }
 
+    &__summary-row--discount {
+        color: var(--success);
+
+        span:last-child {
+            color: var(--success);
+        }
+    }
+
     &__summary-total {
         display: flex;
         justify-content: space-between;
@@ -463,5 +471,163 @@
 @keyframes spin {
     to {
         transform: rotate(360deg);
+    }
+}
+// ═══════════════════════════════════════════════════════
+// Phase 3/4 additions
+// ═══════════════════════════════════════════════════════
+
+.checkout {
+
+    // Notice banner
+    &__notice {
+        margin-bottom: 1rem;
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        color: var(--warning);
+        background-color: var(--warning-soft);
+        border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+        border-radius: var(--radius-md);
+    }
+
+    // Hint text
+    &__hint {
+        margin: 0;
+        font-size: 0.8125rem;
+        line-height: 1.5;
+        color: var(--text-muted);
+    }
+
+    // Shipping summary
+    &__shipping-card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        background-color: var(--bg-muted);
+        border-radius: var(--radius-md);
+    }
+
+    &__shipping-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        font-size: 0.9375rem;
+        color: var(--text-muted);
+
+        strong {
+            color: var(--text);
+            font-family: 'Inter', system-ui, sans-serif;
+            font-weight: 600;
+        }
+    }
+
+    &__shipping-fee {
+        font-family: 'Poppins', system-ui, sans-serif !important;
+        color: var(--brand-primary) !important;
+        font-variant-numeric: tabular-nums;
+    }
+
+    // Coupon block
+    &__coupon {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    &__coupon-applied {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.875rem 1rem;
+        background-color: var(--success-soft, rgba(16, 185, 129, 0.1));
+        border: 1.5px solid var(--success, #10b981);
+        border-radius: var(--radius-md);
+    }
+
+    &__coupon-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+    }
+
+    &__coupon-code {
+        font-family: 'Poppins', system-ui, sans-serif;
+        font-size: 0.9375rem;
+        font-weight: 700;
+        color: var(--text);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    &__coupon-savings {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--success, #10b981);
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__coupon-remove {
+        padding: 0;
+        font-family: 'Inter', system-ui, sans-serif;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--danger);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    // Summary additions
+    &__summary-row--discount {
+        color: var(--success);
+
+        span:last-child {
+            color: var(--success);
+        }
+    }
+
+    &__summary-row--due {
+        span:last-child {
+            color: var(--brand-primary) !important;
+            font-weight: 700;
+        }
+    }
+
+    // Form actions stacked
+    &__form-actions--stack {
+        flex-direction: column-reverse;
+        align-items: stretch;
+
+        @media (min-width: 640px) {
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .checkout__btn {
+            width: 100%;
+
+            @media (min-width: 640px) {
+                width: auto;
+            }
+        }
+    }
+
+    // WhatsApp button style
+    &__btn--whatsapp {
+        background-color: #25d366;
+        border-color: #25d366;
+
+        &:hover:not(:disabled) {
+            background-color: #1eb556;
+            border-color: #1eb556;
+        }
     }
 }

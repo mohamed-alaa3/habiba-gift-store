@@ -55,9 +55,14 @@
           }
         </ol>
       </section>
-    } @else {
+} @else {
       <div class="order-details__cancelled" role="alert">
-        {{ 'account.orderCancelled' | translate }}
+        <span>{{ 'account.orderCancelled' | translate }}</span>
+        @if (o.rejectionReason) {
+          <span class="order-details__cancelled-reason">
+            — {{ o.rejectionReason }}
+          </span>
+        }
       </div>
     }
 
@@ -95,7 +100,13 @@
             <div class="order-details__gift-row">
               <div class="order-details__gift-thumb">
                 @if (box.imageUrl || box.image) {
-                  <img [src]="(box.imageUrl || box.image) | safeImage" [alt]="box.name | localized" class="img-fallback" />
+                  <img
+                    [src]="(box.imageUrl || box.image) | safeImage"
+                    [alt]="box.name | localized"
+                    class="img-fallback"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 }
               </div>
               <p class="order-details__gift-name">{{ box.name | localized }}</p>
@@ -114,7 +125,13 @@
               <div class="order-details__gift-row">
                 <div class="order-details__gift-thumb">
                   @if (gi.imageUrl || gi.image) {
-                    <img [src]="(gi.imageUrl || gi.image) | safeImage" [alt]="gi.name | localized" class="img-fallback" />
+                    <img
+                      [src]="(gi.imageUrl || gi.image) | safeImage"
+                      [alt]="gi.name | localized"
+                      class="img-fallback"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   }
                 </div>
                 <div class="order-details__gift-name-wrap">
@@ -136,7 +153,13 @@
             <div class="order-details__gift-row">
               <div class="order-details__gift-thumb">
                 @if (wrap.imageUrl || wrap.image) {
-                  <img [src]="(wrap.imageUrl || wrap.image) | safeImage" [alt]="wrap.name | localized" class="img-fallback" />
+                  <img
+                    [src]="(wrap.imageUrl || wrap.image) | safeImage"
+                    [alt]="wrap.name | localized"
+                    class="img-fallback"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 }
               </div>
               <p class="order-details__gift-name">{{ wrap.name | localized }}</p>
@@ -177,6 +200,7 @@
               [alt]="item.nameSnapshot | localized"
               class="order-details__item-image img-fallback"
               loading="lazy"
+              decoding="async"
             />
           } @else {
             <div class="order-details__item-image img-fallback" aria-hidden="true"></div>
@@ -226,7 +250,12 @@
           }
           @if (o.discount > 0) {
             <div class="order-details__summary-row is-discount">
-              <span>{{ 'cart.discount' | translate }}</span>
+              <span>
+                {{ 'cart.discount' | translate }}
+                @if (o.couponCode) {
+                  ({{ o.couponCode }})
+                }
+              </span>
               <span>-{{ o.discount | price }}</span>
             </div>
           }
@@ -259,10 +288,11 @@
         <div class="order-details__summary-card">
           <h2 class="order-details__section-title">{{ 'checkout.paymentMethod' | translate }}</h2>
           <p class="order-details__address-line">
-            {{ 'checkout.cashOnDelivery' | translate }}
+            {{ paymentMethodKey(o.paymentMethod) | translate }}
           </p>
           <p class="order-details__address-line">
-            {{ 'checkout.status' | translate }}: <strong>{{ o.paymentStatus }}</strong>
+            {{ 'checkout.status' | translate }}:
+            <strong>{{ paymentStatusKey(o.paymentStatus) | translate }}</strong>
           </p>
         </div>
 

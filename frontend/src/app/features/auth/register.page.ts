@@ -17,6 +17,7 @@ import { ToastService } from '../../core/services/toast.service';
 
 import { AuthPanelComponent } from './components/auth-panel/auth-panel.component';
 import { VerifyEmailModalComponent } from './components/verify-email-modal/verify-email-modal.component';
+import { RevealOnScrollDirective } from '../../shared/directives/reveal-on-scroll.directive';
 
 const FETCH_TIMEOUT_MS = 10000;
 
@@ -37,6 +38,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
     TranslatePipe,
     AuthPanelComponent,
     VerifyEmailModalComponent,
+    RevealOnScrollDirective,
   ],
   templateUrl: './register.page.html',
   styleUrl: './auth.page.scss',

@@ -46,4 +46,8 @@ export interface AddressSnapshot {
   building: string;
   apartment: string;
   postalCode: string;
+  /** Governorate key selected at checkout (Phase 3). */
+  governorate?: string;
+  /** Governorate display name snapshot. */
+  governorateName?: { en: string; ar: string };
 }

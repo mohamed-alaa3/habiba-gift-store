@@ -16,6 +16,7 @@ import { PricePipe } from '../../../../shared/pipes/price.pipe';
 import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
+import { RevealOnScrollDirective } from '../../../../shared/directives/reveal-on-scroll.directive';
 
 type LoadState = 'loading' | 'success' | 'empty' | 'error';
 
@@ -33,6 +34,7 @@ const FETCH_TIMEOUT_MS = 8000;
     SafeImagePipe,
     EmptyStateComponent,
     LoaderComponent,
+    RevealOnScrollDirective,
   ],
   templateUrl: './wishlist.component.html',
   styleUrl: './wishlist.component.scss',

@@ -543,3 +543,34 @@
         transform: rotate(360deg);
     }
 }
+// ---------- Reveal animation tuning ----------
+// Global tokens live in styles/_animations.scss:
+//   --reveal-duration: 650ms
+//   --reveal-stagger:  90ms
+// We override per-section here where the default feels off.
+
+// Info column has 8-10 direct children → tighten the stagger.
+.product-details__info[appRevealOnScroll] {
+    --reveal-stagger: 60ms;
+}
+
+// Thumbs row — many small items, keep it snappy.
+.product-details__thumbs[appRevealOnScroll] {
+    --reveal-stagger: 50ms;
+}
+
+// Reviews list — same tempo as info, prevents long lists from dragging.
+.product-details__reviews-list[appRevealOnScroll] {
+    --reveal-stagger: 60ms;
+}
+
+// Related grid — 4 cards max, slightly slower feels more premium.
+.product-details__related-grid[appRevealOnScroll] {
+    --reveal-stagger: 70ms;
+}
+
+// Main image — a touch faster than the global 650ms.
+// (Optional: remove if 650ms feels right.)
+.product-details__main-image[appRevealOnScroll] {
+    --reveal-duration: 500ms;
+}

@@ -28,23 +28,53 @@
       </div>
 
       <div class="admin-order-details__header-right">
-        <label class="admin-order-details__status-label" for="status-select">
-          {{ 'admin.orders.updateStatus' | translate }}
-        </label>
-        <select
-          id="status-select"
-          class="admin-order-details__status-select"
-          [class]="statusClass(o.status)"
-          [value]="o.status"
-          (change)="onStatusChange($event)"
-          [disabled]="updatingStatus()"
-        >
-          @for (s of statusOptions; track s) {
-            <option [value]="s">{{ 'orderStatus.' + s | translate }}</option>
-          }
-        </select>
+        <span class="admin-order-details__status-label">
+          {{ 'admin.orders.currentStatus' | translate }}
+        </span>
+        <span class="admin-order-details__status-badge" [class]="statusClass(o.status)">
+          {{ 'orderStatus.' + o.status | translate }}
+        </span>
       </div>
     </header>
+
+    <!-- Actions -->
+    <section class="admin-order-details__actions" aria-label="Order actions">
+      <h2 class="admin-order-details__actions-title">
+        {{ 'admin.orders.actionsLabel' | translate }}
+      </h2>
+
+      @if (availableActions().length > 0) {
+        <div class="admin-order-details__actions-row">
+          @for (action of availableActions(); track action.status) {
+            <button
+              type="button"
+              [class]="actionButtonClass(action.variant)"
+              [disabled]="updatingStatus()"
+              (click)="triggerAction(action)"
+            >
+              @if (updatingStatus()) {
+                <span class="admin-order-details__spinner" aria-hidden="true"></span>
+              } @else {
+                {{ action.labelKey | translate }}
+              }
+            </button>
+          }
+        </div>
+      } @else {
+        <p class="admin-order-details__no-actions">
+          {{ 'admin.orders.noActions' | translate }}
+        </p>
+      }
+
+      @if (o.rejectionReason) {
+        <div class="admin-order-details__rejection-reason">
+          <span class="admin-order-details__rejection-label">
+            {{ 'admin.orders.cancellationReason' | translate }}:
+          </span>
+          <span>{{ o.rejectionReason }}</span>
+        </div>
+      }
+    </section>
 
     <!-- Grid -->
     <div class="admin-order-details__grid">
@@ -149,7 +179,7 @@
         }
       </li>
     } @else {
-      <!-- REGULAR PRODUCT ITEM (existing) -->
+      <!-- REGULAR PRODUCT ITEM -->
       <li class="admin-order-details__item">
         <div class="admin-order-details__item-media">
           @if (item.imageUrl || item.imageSnapshot) {
@@ -204,7 +234,12 @@
           }
           @if (o.discount > 0) {
             <div class="admin-order-details__row is-discount">
-              <span>{{ 'cart.discount' | translate }}</span>
+              <span>
+                {{ 'cart.discount' | translate }}
+                @if (o.couponCode) {
+                  ({{ o.couponCode }})
+                }
+              </span>
               <span>-{{ o.discount | price }}</span>
             </div>
           }
@@ -243,8 +278,29 @@
         <!-- Payment -->
         <div class="admin-order-details__card">
           <h3 class="admin-order-details__card-title">{{ 'checkout.paymentMethod' | translate }}</h3>
-          <p class="admin-order-details__value">{{ 'checkout.cashOnDelivery' | translate }}</p>
-          <p class="admin-order-details__muted">{{ 'checkout.status' | translate }}: {{ o.paymentStatus }}</p>
+          <p class="admin-order-details__value">
+            @switch (o.paymentMethod) {
+              @case ('cod') { {{ 'checkout.paymentCod' | translate }} }
+              @case ('deposit') { {{ 'checkout.paymentDeposit' | translate }} }
+              @case ('full') { {{ 'checkout.paymentFull' | translate }} }
+              @default { {{ 'checkout.paymentCod' | translate }} }
+            }
+          </p>
+          <p class="admin-order-details__muted">
+            {{ 'checkout.status' | translate }}:
+            <strong>{{ 'orderPayment.' + o.paymentStatus | translate }}</strong>
+          </p>
+        </div>
+
+        <!-- Payment proof -->
+        <div class="admin-order-details__card">
+          <h3 class="admin-order-details__card-title">
+            {{ 'admin.orders.paymentProof.title' | translate }}
+          </h3>
+          <app-payment-proof-viewer
+            [orderId]="o._id"
+            [hasProof]="!!o.hasPaymentProof"
+          />
         </div>
 
         @if (o.notes) {
@@ -256,4 +312,72 @@
       </aside>
     </div>
   </div>
+
+  <!-- Reason dialog -->
+  <app-modal
+    [isOpen]="dialogOpen()"
+    size="sm"
+    [ariaLabel]="'admin.orders.dialog.title' | translate"
+    (closed)="closeDialog()"
+  >
+    @if (pendingAction(); as action) {
+      <h2 class="admin-order-details__dialog-title">
+        {{ action.dialogTitleKey | translate }}
+      </h2>
+      <p class="admin-order-details__dialog-text">
+        {{ action.dialogTextKey | translate }}
+      </p>
+
+      <label class="admin-order-details__dialog-label" for="rejection-reason">
+        {{ 'admin.orders.dialog.reasonLabel' | translate }}
+      </label>
+      <textarea
+        id="rejection-reason"
+        class="admin-order-details__dialog-textarea"
+        rows="3"
+        [placeholder]="'admin.orders.dialog.reasonPlaceholder' | translate"
+        [value]="reasonText()"
+        (input)="reasonText.set($any($event.target).value)"
+      ></textarea>
+
+      @if (action.needsConfirm) {
+        <label class="admin-order-details__dialog-checkbox">
+          <input
+            type="checkbox"
+            [checked]="confirmChecked()"
+            (change)="confirmChecked.set($any($event.target).checked)"
+          />
+          <span>{{ 'admin.orders.dialog.confirmProcessing' | translate }}</span>
+        </label>
+      }
+
+      @if (dialogError()) {
+        <p class="admin-order-details__dialog-error" role="alert">
+          {{ dialogError() }}
+        </p>
+      }
+
+      <div class="admin-order-details__dialog-actions">
+        <button
+          type="button"
+          class="admin-order-details__action admin-order-details__action--secondary"
+          (click)="closeDialog()"
+        >
+          {{ 'admin.orders.dialog.back' | translate }}
+        </button>
+        <button
+          type="button"
+          class="admin-order-details__action admin-order-details__action--danger"
+          [disabled]="updatingStatus()"
+          (click)="confirmDialog()"
+        >
+          @if (updatingStatus()) {
+            <span class="admin-order-details__spinner" aria-hidden="true"></span>
+          } @else {
+            {{ action.dialogSubmitKey | translate }}
+          }
+        </button>
+      </div>
+    }
+  </app-modal>
 }

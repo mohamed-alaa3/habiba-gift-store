@@ -5,11 +5,12 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AuthStore } from '../../../../core/stores/auth.store';
 import { CartStore } from '../../../../core/stores/cart.store';
 import { WishlistStore } from '../../../../core/stores/wishlist.store';
+import { RevealOnScrollDirective } from '../../../../shared/directives/reveal-on-scroll.directive';
 
 @Component({
   selector: 'app-account-overview',
   standalone: true,
-  imports: [CommonModule, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, RevealOnScrollDirective],
   templateUrl: './overview.component.html',
   styleUrl: './overview.component.scss',
 })

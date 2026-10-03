@@ -7,7 +7,7 @@ const env = require("../config/env");
 const { UPLOAD } = require("../config/constants");
 const ApiError = require("../utils/ApiError");
 
-// Ensure base upload directories exist
+// ─── Public uploads (served statically) ─────────────────────
 const BASE_UPLOAD_DIR = path.join(__dirname, "..", "uploads");
 const SUBDIRS = [
   "products",
@@ -25,18 +25,31 @@ for (const sub of SUBDIRS) {
   }
 }
 
+// ─── Private uploads (payment proofs) ───────────────────────
+// Stored outside of the static /uploads folder and served only
+// through an authenticated endpoint.
+const PRIVATE_UPLOAD_DIR = path.join(
+  __dirname,
+  "..",
+  "private",
+  "payment-proofs",
+);
+if (!fs.existsSync(PRIVATE_UPLOAD_DIR)) {
+  fs.mkdirSync(PRIVATE_UPLOAD_DIR, { recursive: true });
+}
+
 /**
- * Build a multer disk storage for a given subfolder.
+ * Build a multer disk storage for a given absolute folder.
  */
-function makeStorage(subfolder) {
+function makeStorage(absoluteDir, prefix) {
   return multer.diskStorage({
     destination: (req, file, cb) => {
-      cb(null, path.join(BASE_UPLOAD_DIR, subfolder));
+      cb(null, absoluteDir);
     },
     filename: (req, file, cb) => {
       const ext = path.extname(file.originalname).toLowerCase();
       const unique = crypto.randomBytes(8).toString("hex");
-      cb(null, `${subfolder}-${Date.now()}-${unique}${ext}`);
+      cb(null, `${prefix}-${Date.now()}-${unique}${ext}`);
     },
   });
 }
@@ -56,11 +69,11 @@ function fileFilter(req, file, cb) {
 }
 
 /**
- * Create a multer instance for a specific folder + max file count.
+ * Create a multer instance for a public subfolder + max file count.
  */
 function createUploader(subfolder, maxFiles) {
   return multer({
-    storage: makeStorage(subfolder),
+    storage: makeStorage(path.join(BASE_UPLOAD_DIR, subfolder), subfolder),
     fileFilter,
     limits: {
       fileSize: env.upload.maxFileSizeMB * 1024 * 1024,
@@ -70,31 +83,32 @@ function createUploader(subfolder, maxFiles) {
 }
 
 // ============================================
-// Named uploaders — MUST be defined BEFORE
-// the module.exports at the bottom of the file
+// Public uploaders
 // ============================================
 
-// Product: up to N images per request
 const uploadProductImages = createUploader(
   "products",
   env.upload.maxFilesPerProduct,
 ).array("images", env.upload.maxFilesPerProduct);
 
-// Category: single image
 const uploadCategoryImage = createUploader("categories", 1).single("image");
-
-// Banner: single image
 const uploadBannerImage = createUploader("banners", 1).single("image");
-
-// Gift Box: single image
 const uploadGiftBoxImage = createUploader("gift-boxes", 1).single("image");
-// Wrap Style: single image
-const uploadWrapStyleImage = createUploader('wrap-styles', 1).single('image');
-// Ribbon: single image
-const uploadRibbonImage = createUploader('ribbons', 1).single('image');
+const uploadWrapStyleImage = createUploader("wrap-styles", 1).single("image");
+const uploadRibbonImage = createUploader("ribbons", 1).single("image");
+
 // ============================================
-// Exports (AFTER all uploaders are defined)
+// Private uploader — payment proof (single image, 5 MB max)
 // ============================================
+
+const uploadPaymentProof = multer({
+  storage: makeStorage(PRIVATE_UPLOAD_DIR, "proof"),
+  fileFilter,
+  limits: {
+    fileSize: env.upload.maxFileSizeMB * 1024 * 1024,
+    files: 1,
+  },
+}).single("paymentProof");
 
 module.exports = {
   uploadProductImages,
@@ -102,5 +116,8 @@ module.exports = {
   uploadBannerImage,
   uploadGiftBoxImage,
   uploadWrapStyleImage,
-  uploadRibbonImage, 
+  uploadRibbonImage,
+  uploadPaymentProof,
+  // Exported for the download endpoint in the controller
+  PRIVATE_UPLOAD_DIR,
 };

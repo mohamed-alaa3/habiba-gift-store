@@ -527,3 +527,13 @@
     white-space: pre-wrap;
     font-style: italic;
 }
+.order-details__cancelled {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.order-details__cancelled-reason {
+    font-weight: 500;
+    opacity: 0.9;
+}

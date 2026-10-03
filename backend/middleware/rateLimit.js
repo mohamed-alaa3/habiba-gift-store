@@ -29,4 +29,20 @@ const generalLimiter = rateLimit({
   },
 });
 
-module.exports = { authLimiter, generalLimiter };
+/**
+ * Coupon validation limiter — makes guessing codes impractical.
+ * Generous enough for normal cart edits (the storefront re-validates
+ * whenever the cart subtotal changes).
+ */
+const couponLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many coupon attempts. Please try again later.",
+  },
+});
+
+module.exports = { authLimiter, generalLimiter, couponLimiter };

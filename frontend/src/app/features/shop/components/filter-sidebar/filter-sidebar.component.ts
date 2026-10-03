@@ -13,6 +13,7 @@ export interface ShopFilters {
   rating?: number;
   inStock?: boolean;
   onSale?: boolean;
+  search?: string;
 }
 
 @Component({

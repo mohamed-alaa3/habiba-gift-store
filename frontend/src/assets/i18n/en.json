@@ -1,4 +1,70 @@
 {
+  "seo": {
+    "home": {
+      "title": "Habiba Store — Thoughtful Gifts & Lifestyle Treasures",
+      "description": "Discover curated gifts, gift boxes, and lifestyle treasures at Habiba Store. Thoughtful presents for every occasion, delivered with care."
+    },
+    "shop": {
+      "title": "Shop All Products — Habiba Store",
+      "description": "Browse our full collection of gifts and lifestyle products. Filter by category, price, and rating to find the perfect pick."
+    },
+    "productDetails": {
+      "title": "Product Details — Habiba Store",
+      "description": "Explore product details, pricing, and reviews at Habiba Store."
+    },
+    "gifts": {
+      "title": "Build Your Own Gift — Habiba Store",
+      "description": "Create a one-of-a-kind gift box. Choose your items, wrap style, and ribbon for a truly personal present."
+    },
+    "cart": {
+      "title": "Your Cart — Habiba Store",
+      "description": "Review the items in your shopping cart before checking out at Habiba Store."
+    },
+    "checkout": {
+      "title": "Checkout — Habiba Store",
+      "description": "Securely complete your order with fast, reliable delivery from Habiba Store."
+    },
+    "about": {
+      "title": "About Us — Habiba Store",
+      "description": "Learn about Habiba Store's story, mission, and commitment to thoughtful gifting."
+    },
+    "contact": {
+      "title": "Contact Us — Habiba Store",
+      "description": "Get in touch with the Habiba Store team for questions, support, or feedback."
+    },
+    "privacyPolicy": {
+      "title": "Privacy Policy — Habiba Store",
+      "description": "Read Habiba Store's privacy policy to learn how we collect, use, and protect your personal information."
+    },
+    "termsOfService": {
+      "title": "Terms of Service — Habiba Store",
+      "description": "Review the terms and conditions for using Habiba Store's website and services."
+    },
+    "shippingPolicy": {
+      "title": "Shipping Policy — Habiba Store",
+      "description": "Find out about Habiba Store's shipping methods, delivery times, and rates."
+    },
+    "returnsExchanges": {
+      "title": "Returns & Exchanges — Habiba Store",
+      "description": "Learn about Habiba Store's return and exchange policy for a worry-free shopping experience."
+    },
+    "giftCards": {
+      "title": "Gift Cards — Habiba Store",
+      "description": "Give the gift of choice with a Habiba Store gift card, perfect for any occasion."
+    },
+    "login": {
+      "title": "Sign In — Habiba Store",
+      "description": "Sign in to your Habiba Store account to track orders, manage your wishlist, and more."
+    },
+    "register": {
+      "title": "Create an Account — Habiba Store",
+      "description": "Create a free Habiba Store account to enjoy faster checkout, order tracking, and exclusive offers."
+    },
+    "notFound": {
+      "title": "Page Not Found — Habiba Store",
+      "description": "The page you're looking for doesn't exist or has been moved. Return to Habiba Store to keep browsing."
+    }
+  },
   "staticPages": {
   "notFound": "Page not found",
   "privacy": {
@@ -142,6 +208,15 @@
     "name": "Habiba Store",
     "tagline": "Curating moments of joy through thoughtful gifts and lifestyle treasures."
   },
+  "whatsapp": {
+    "label": "Chat with us on WhatsApp",
+    "tooltip": "Chat with us on WhatsApp",
+    "message": "Hello Habiba Store, I'd like to ask about your products."
+  },
+  "notFoundPage": {
+    "title": "Page not found",
+    "backHome": "Back to home"
+  },
   "nav": {
     "home": "Home",
     "shop": "Shop",
@@ -154,7 +229,8 @@
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "register": "Register",
-    "search": "Search gifts..."
+    "search": "Search gifts...",
+    "closeMenu": "Close menu"
   },
   "home": {
     "hero": {
@@ -418,7 +494,8 @@
     "outOfStock": "Out of Stock",
     "inStock": "In Stock",
     "success": "Done",
-    "comingSoon": "Coming Soon"
+    "comingSoon": "Coming Soon",
+    "copy": "Copy"
   },
   "errors": {
     "required": "This field is required",
@@ -443,7 +520,8 @@
     "settings": "Settings",
       "giftBoxes": "Gift Boxes",
   "wrapStyles": "Wrap Styles",
-  "ribbons": "Ribbons"
+  "ribbons": "Ribbons",
+  "coupons": "Coupons"
   },
   "giftBoxes": {
   "title": "Gift Boxes",
@@ -490,6 +568,75 @@
   "emptyText": "Add your first wrap style to get started.",
   "errorTitle": "Couldn't load wrap styles",
   "errorText": "There was a problem. Please try again."
+},
+"coupons": {
+  "title": "Coupons",
+  "subtitle": "Create and manage discount codes for your customers.",
+  "addCoupon": "Add Coupon",
+  "editCoupon": "Edit Coupon",
+  "backToList": "Back to Coupons",
+  "searchPlaceholder": "Search by code...",
+  "filterAll": "All",
+  "active": "Active",
+  "inactive": "Inactive",
+  "colCode": "Code",
+  "colDiscount": "Discount",
+  "colUsage": "Used",
+  "colValidity": "Validity",
+  "colStatus": "Status",
+  "colActions": "Actions",
+  "restricted": "Restricted",
+  "minOrderShort": "Min. {{amount}}",
+  "until": "until",
+  "noExpiry": "No time limit",
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "scheduled": "Scheduled",
+    "expired": "Expired",
+    "exhausted": "Used up"
+  },
+  "toggleActive": "Activate / deactivate",
+  "confirmDelete": "Delete coupon \"{{code}}\"? This cannot be undone.",
+  "toastActivated": "Coupon activated",
+  "toastDeactivated": "Coupon deactivated",
+  "toastDeleted": "Coupon deleted",
+  "toastCreated": "Coupon created",
+  "toastUpdated": "Coupon updated",
+  "emptyTitle": "No coupons yet",
+  "emptyText": "Create your first discount code to get started.",
+  "errorTitle": "Couldn't load coupons",
+  "errorText": "There was a problem. Please try again.",
+  "notFound": "Coupon not found",
+  "errorDates": "The end date must be after the start date.",
+  "code": "Coupon Code",
+  "codeHint": "3-32 characters: letters, numbers, dash or underscore. Saved in uppercase.",
+  "errorCode": "Use 3-32 letters, numbers, dashes or underscores.",
+  "type": "Discount Type",
+  "typePercentage": "Percentage (%)",
+  "typeFixed": "Fixed amount (EGP)",
+  "valuePercent": "Percentage",
+  "valueFixed": "Amount (EGP)",
+  "errorPercent": "Enter a percentage between 0.01 and 100.",
+  "errorValue": "Enter an amount greater than 0.",
+  "minOrderAmount": "Minimum Order Amount",
+  "minOrderHint": "Cart subtotal required to use the code. Leave empty for none.",
+  "maxDiscountAmount": "Maximum Discount",
+  "maxDiscountHint": "Caps the discount of a percentage coupon. Leave empty for no cap.",
+  "maxDiscountDisabled": "Only applies to percentage coupons.",
+  "usageLimit": "Total Usage Limit",
+  "usageLimitHint": "How many times the code can be used in total. Leave empty for unlimited.",
+  "perUserLimit": "Uses Per Customer",
+  "perUserLimitHint": "Cancelled orders don't count.",
+  "validFrom": "Valid From",
+  "validUntil": "Valid Until",
+  "scopeTitle": "Applies To",
+  "scopeHint": "Leave both empty to apply to the whole cart. Otherwise only matching products are discounted (gift boxes are excluded).",
+  "categories": "Categories",
+  "noCategories": "No categories available.",
+  "products": "Products",
+  "searchProducts": "Search products to add (min. 2 letters)...",
+  "isActive": "Active"
 },
 "ribbons": {
   "title": "Ribbons",
@@ -594,7 +741,51 @@
   "emptyTitle": "No orders yet",
   "emptyText": "Orders will appear here as customers place them.",
   "errorTitle": "Couldn't load orders",
-  "errorText": "There was a problem. Please try again."
+  "errorText": "There was a problem. Please try again.",
+  "currentStatus": "Current status",
+  "actionsLabel": "Order actions",
+  "noActions": "No further actions available for this order.",
+  "cancellationReason": "Cancellation reason",
+  "actions": {
+    "approve": "Approve",
+    "reject": "Reject",
+    "startProcessing": "Start Processing",
+    "cancel": "Cancel",
+    "markShipped": "Mark Shipped",
+    "markDelivered": "Mark Delivered"
+  },
+  "paymentProof": {
+  "title": "Payment Proof",
+  "subtitle": "Screenshot uploaded by the customer.",
+  "viewButton": "View screenshot",
+  "notProvided": "No payment proof (Cash on Delivery).",
+  "alt": "Payment proof screenshot",
+  "loadError": "Couldn't load the payment proof. Please try again."
+},
+  "dialog": {
+    "title": "Order action",
+    "rejectTitle": "Reject this order?",
+    "rejectText": "The order will be cancelled, its items returned to stock and any coupon use released. This can't be undone.",
+    "cancelTitle": "Cancel this order?",
+    "cancelText": "The order will be cancelled, its items returned to stock and any coupon use released. This can't be undone.",
+    "reasonLabel": "Reason",
+    "reasonPlaceholder": "Explain why (required)",
+    "reasonRequired": "Please enter a reason.",
+    "confirmProcessing": "This order is already being processed. I confirm I want to cancel it.",
+    "confirmRequired": "Please tick the box to confirm.",
+    "back": "Keep order",
+    "submitReject": "Reject order",
+    "submitCancel": "Cancel order"
+  },
+  "toast": {
+    "approve": "Order approved",
+    "reject": "Order rejected",
+    "startProcessing": "Order moved to processing",
+    "cancel": "Order cancelled",
+    "markShipped": "Order marked as shipped",
+    "markDelivered": "Order marked as delivered",
+    "failed": "Couldn't update the order. Please try again."
+  }
 },
 "banners": {
   "title": "Banners",
@@ -708,7 +899,74 @@
   "title": "Admin Settings",
   "subtitle": "Configure your store preferences.",
   "comingSoon": "Settings coming soon",
-  "comingSoonText": "Admin settings — including currency, tax rates, shipping configuration, and more — will be available in a future update."
+  "comingSoonText": "Admin settings — including currency, tax rates, shipping configuration, and more — will be available in a future update.",
+  "tabsLabel": "Settings sections",
+  "tabs": {
+    "shipping": "Shipping",
+    "payment": "Payment",
+    "store": "Store info"
+  },
+  "loadErrorTitle": "Couldn't load settings",
+  "loadErrorText": "There was a problem loading the settings. Please try again.",
+  "unsaved": "You have unsaved changes",
+  "reset": "Discard changes",
+  "save": "Save changes",
+  "saving": "Saving...",
+  "egp": "EGP",
+  "toast": {
+    "shipping": "Shipping settings saved",
+    "payment": "Payment settings saved",
+    "store": "Store info saved",
+    "failed": "Couldn't save. Please try again."
+  },
+  "errors": {
+    "required": "This field is required.",
+    "depositRange": "Enter an amount between 1 and 100,000.",
+    "percentRange": "Enter a percentage between 0 and 100.",
+    "phone": "Enter a valid Egyptian mobile number, e.g. 01012345678.",
+    "instapay": "Enter a mobile number or an InstaPay address, e.g. name@instapay.",
+    "email": "Enter a valid email address.",
+    "maxlength": "This value is too long."
+  },
+  "regions": {
+    "major": "Major cities",
+    "delta": "Delta & Canal",
+    "upper": "Upper Egypt",
+    "frontier": "Frontier governorates"
+  },
+  "shipping": {
+    "title": "Shipping fees",
+    "description": "Set the delivery fee for each governorate. Customers pay the fee of the governorate they choose at checkout.",
+    "note": "A fee of 0 means free shipping. A governorate that is switched off is shown at checkout as \"we don't ship here right now\".",
+    "feeFor": "Shipping fee for {{name}}",
+    "shipTo": "Ship to {{name}}",
+    "free": "Free",
+    "notShipping": "Not shipping",
+    "bulkLabel": "Set the whole group to",
+    "bulkApply": "Apply to group",
+    "feeInvalid": "Fix the highlighted fees before saving."
+  },
+  "payment": {
+    "title": "Payment",
+    "description": "Customers pay outside the site by manual transfer, then upload a screenshot as proof.",
+    "depositAmount": "Deposit amount",
+    "depositHint": "Paid now with the deposit option. The rest is paid in cash on delivery.",
+    "discountPercent": "Full-payment discount",
+    "discountHint": "Taken off the products (after any coupon, before shipping) when the customer pays everything in advance.",
+    "vodafone": "Vodafone Cash number",
+    "vodafoneHint": "The number customers transfer to. Leave empty to stop offering Vodafone Cash.",
+    "instapay": "InstaPay number or address",
+    "instapayHint": "A mobile number or an InstaPay address. Leave empty to stop offering InstaPay.",
+    "noMethods": "No payment number is set yet. Customers can't complete checkout until you add at least one."
+  },
+  "store": {
+    "title": "Store information",
+    "description": "Optional details about your store.",
+    "name": "Store name",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address"
+  }
 }
 },
 "shop": {
@@ -762,7 +1020,29 @@
   "notFound": "Product not found",
   "notFoundText": "The product you're looking for might have been removed or is no longer available."
 },
+"coupon": {
+  "label": "Discount code",
+  "placeholder": "Enter your code",
+  "apply": "Apply",
+  "remove": "Remove coupon",
+  "percentOff": "{{value}}% off",
+  "amountOff": "{{amount}} off",
+  "removed": "Your coupon was removed.",
+  "errors": {
+    "NOT_FOUND": "This code isn't valid.",
+    "INACTIVE": "This coupon is no longer active.",
+    "NOT_STARTED": "This coupon isn't valid yet.",
+    "EXPIRED": "This coupon has expired.",
+    "USAGE_LIMIT_REACHED": "This coupon has reached its usage limit.",
+    "USER_LIMIT_REACHED": "You've already used this coupon.",
+    "MIN_ORDER_NOT_MET": "This coupon needs a minimum order of {{amount}}.",
+    "NOT_APPLICABLE": "This coupon doesn't apply to the items in your cart.",
+    "EMPTY_CART": "Your cart is empty.",
+    "NETWORK": "Couldn't check the code. Please try again."
+  }
+},
 "cart": {
+  "discount": "Discount",
   "title": "Your Cart",
   "pageTitle": "Shopping Cart",
   "summary": "Order Summary",
@@ -787,11 +1067,12 @@
 },
 "checkout": {
   "title": "Checkout",
-  "customGiftBox": "Custom Gift Box",
   "returnToCart": "Return to Cart",
   "stepInformation": "Information",
   "stepShipping": "Shipping",
+  "stepCoupon": "Coupon",
   "stepPayment": "Payment",
+  "stepProof": "Payment Proof",
   "stepReview": "Review",
   "contactInfo": "Contact Information",
   "email": "Email Address",
@@ -800,6 +1081,8 @@
   "fullName": "Full Name",
   "phone": "Phone Number",
   "country": "Country",
+  "governorate": "Governorate",
+  "governoratePlaceholder": "Choose your governorate",
   "city": "City",
   "area": "Area / Neighborhood",
   "street": "Street Address",
@@ -812,16 +1095,46 @@
   "savedAddresses": "Saved Addresses",
   "default": "Default",
   "continueToReview": "Continue to Review",
+  "shippingSummary": "Shipping Summary",
+  "shippingHint": "Your order will be shipped to the selected governorate.",
+  "couponTitle": "Have a coupon?",
+  "couponHint": "Enter your code below to unlock the discount.",
   "reviewItems": "Items",
   "reviewShipping": "Shipping Address",
   "reviewNotes": "Notes",
   "qty": "Qty",
   "paymentMethod": "Payment Method",
+  "paymentCod": "Cash on Delivery",
+  "paymentCodDesc": "Pay in cash when your order arrives.",
+  "paymentDeposit": "Deposit + rest on delivery",
+  "paymentDepositDesc": "Pay a deposit now, the rest in cash on delivery.",
+  "paymentFull": "Pay in full in advance",
+  "paymentFullDesc": "Pay the entire amount now and get a discount.",
+  "paymentFullBadge": "Discount",
+  "paymentNoMethods": "No payment number is set yet. Please choose Cash on Delivery.",
+  "paymentRequired": "Please choose a payment method.",
+  "paymentDiscountLine": "Full-payment discount",
+  "paymentNote": "Online payment options will be available soon.",
   "cashOnDelivery": "Cash on Delivery",
   "cashOnDeliveryDesc": "Pay in cash when your order arrives.",
-  "paymentNote": "Online payment options will be available soon.",
+  "proofTitle": "Payment Proof",
+  "proofSubtitle": "Transfer the amount below, then upload a screenshot as proof.",
+  "proofAmountLabel": "Amount to transfer now",
+  "proofVodafone": "Vodafone Cash",
+  "proofInstapay": "InstaPay",
+  "proofMethod": "Transfer method",
+  "proofUploadLabel": "Upload screenshot",
+  "proofChooseFile": "Choose a screenshot",
+  "proofFileHint": "JPG, PNG, or WebP, max {{max}} MB",
+  "proofMethodRequired": "Please choose the transfer method.",
+  "proofFileRequired": "Please upload a screenshot of the transfer.",
+  "amountDueNow": "Amount due now",
+  "remainingOnDelivery": "Remaining on delivery",
   "placeOrder": "Place Order",
+  "placeOrderWhatsApp": "Confirm & Send on WhatsApp",
   "placing": "Placing Order...",
+  "whatsappFallback": "If WhatsApp didn't open automatically, tap the button below.",
+  "sendOnWhatsapp": "Send on WhatsApp",
   "successTitle": "Order Placed Successfully!",
   "successText": "Thank you for your order. We'll send you a confirmation email with tracking details shortly.",
   "orderNumber": "Order Number",
@@ -829,7 +1142,13 @@
   "status": "Status",
   "viewOrders": "View My Orders",
   "errorTitle": "Couldn't load checkout",
-  "errorText": "There was a problem reaching the store. Please try again."
+  "errorText": "There was a problem reaching the store. Please try again.",
+  "priceChanged": "The order total changed. Please review the new amount and confirm again.",
+  "quoteError": "We couldn't calculate the shipping. Please check your address and try again.",
+  "createError": "We couldn't create your order. Please try again.",
+  "customGiftBox": "Custom Gift Box",
+  "giftBox": "Gift Box",
+  "tax": "Tax"
 },
 "orderStatus": {
   "pending": "Pending",
@@ -837,7 +1156,18 @@
   "processing": "Processing",
   "shipped": "Shipped",
   "delivered": "Delivered",
-  "cancelled": "Cancelled"
+  "cancelled": "Cancelled",
+  "partial": "Partially paid",
+  "paid": "Paid",
+  "failed": "Failed",
+  "refunded": "Refunded"
+},
+"orderPayment": {
+  "pending": "Pending",
+  "partial": "Partially paid",
+  "paid": "Paid",
+  "failed": "Failed",
+  "refunded": "Refunded"
 },
 "about": {
   "eyebrow": "Our Story",

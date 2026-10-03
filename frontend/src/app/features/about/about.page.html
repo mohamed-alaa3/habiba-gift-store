@@ -28,8 +28,8 @@
   </section>
 
   <!-- Values -->
-  <section class="about__values" appRevealOnScroll [stagger]="true">
-    <header class="about__values-header">
+  <section class="about__values">
+    <header class="about__values-header" appRevealOnScroll>
       <h2 class="about__heading about__heading--center">
         {{ 'about.valuesTitle' | translate }}
       </h2>
@@ -38,7 +38,7 @@
       </p>
     </header>
 
-    <div class="about__values-grid">
+    <div class="about__values-grid" appRevealOnScroll [stagger]="true" [delay]="60">
       @for (value of values; track value.id) {
         <article class="about-value">
           <div class="about-value__icon" aria-hidden="true">

@@ -1,15 +1,18 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
+
+import { RevealOnScrollDirective } from '../../shared/directives/reveal-on-scroll.directive';
 
 @Component({
   selector: 'app-not-found-page',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe, RevealOnScrollDirective],
   template: `
-    <main class="not-found-page">
+    <main class="not-found-page" appRevealOnScroll [stagger]="true">
       <p class="code">404</p>
-      <h1 class="title">Page not found</h1>
-      <a routerLink="/" class="home-link">Back to home</a>
+      <h1 class="title">{{ 'notFoundPage.title' | translate }}</h1>
+      <a routerLink="/" class="home-link">{{ 'notFoundPage.backHome' | translate }}</a>
     </main>
   `,
   styles: [

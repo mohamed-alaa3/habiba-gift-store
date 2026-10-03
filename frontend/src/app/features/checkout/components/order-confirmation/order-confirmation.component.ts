@@ -44,11 +44,51 @@ import { PricePipe } from '../../../../shared/pipes/price.pipe';
           <span>{{ 'cart.total' | translate }}</span>
           <strong class="confirmation__total">{{ order().total | price }}</strong>
         </div>
+        @if (order().amountDueNow > 0) {
+          <div class="confirmation__row">
+            <span>{{ 'checkout.amountDueNow' | translate }}</span>
+            <strong class="confirmation__due">{{ order().amountDueNow | price }}</strong>
+          </div>
+          <div class="confirmation__row">
+            <span>{{ 'checkout.remainingOnDelivery' | translate }}</span>
+            <strong>{{ order().remainingAmount | price }}</strong>
+          </div>
+        }
         <div class="confirmation__row">
           <span>{{ 'checkout.status' | translate }}</span>
-          <strong class="confirmation__status">{{ order().status }}</strong>
+          <strong class="confirmation__status">
+            {{ 'orderStatus.' + order().status | translate }}
+          </strong>
         </div>
       </div>
+
+      @if (whatsappMessage()) {
+        <div class="confirmation__whatsapp">
+          <p class="confirmation__whatsapp-text">
+            {{ 'checkout.whatsappFallback' | translate }}
+          </p>
+          <a
+            class="confirmation__btn confirmation__btn--whatsapp"
+            [href]="whatsappLink()"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"
+              />
+            </svg>
+            {{ 'checkout.sendOnWhatsapp' | translate }}
+          </a>
+        </div>
+      }
 
       <div class="confirmation__actions">
         <a routerLink="/shop" class="confirmation__btn confirmation__btn--primary">
@@ -135,8 +175,31 @@ import { PricePipe } from '../../../../shared/pipes/price.pipe';
         font-size: 1.125rem;
       }
 
+      .confirmation__due {
+        color: var(--brand-primary) !important;
+      }
+
       .confirmation__status {
         text-transform: capitalize;
+      }
+
+      .confirmation__whatsapp {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        background-color: var(--brand-primary-soft);
+        border: 1.5px dashed var(--brand-primary);
+        border-radius: var(--radius-lg);
+        margin-top: 0.5rem;
+      }
+
+      .confirmation__whatsapp-text {
+        margin: 0;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        color: var(--text);
       }
 
       .confirmation__actions {
@@ -151,6 +214,7 @@ import { PricePipe } from '../../../../shared/pipes/price.pipe';
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        gap: 0.5rem;
         height: 48px;
         padding-inline: 1.75rem;
         font-family: 'Inter', system-ui, sans-serif;
@@ -159,12 +223,14 @@ import { PricePipe } from '../../../../shared/pipes/price.pipe';
         border-radius: 9999px;
         text-decoration: none;
         transition: all var(--transition-base);
+        cursor: pointer;
+        border: 1.5px solid transparent;
       }
 
       .confirmation__btn--primary {
         background-color: var(--brand-primary);
         color: #ffffff;
-        border: 1.5px solid var(--brand-primary);
+        border-color: var(--brand-primary);
       }
 
       .confirmation__btn--primary:hover {
@@ -174,16 +240,35 @@ import { PricePipe } from '../../../../shared/pipes/price.pipe';
       .confirmation__btn--ghost {
         background: transparent;
         color: var(--text);
-        border: 1.5px solid var(--border-strong);
+        border-color: var(--border-strong);
       }
 
       .confirmation__btn--ghost:hover {
         border-color: var(--brand-primary);
         color: var(--brand-primary);
       }
+
+      .confirmation__btn--whatsapp {
+        background-color: #25d366;
+        color: #ffffff;
+        border-color: #25d366;
+      }
+
+      .confirmation__btn--whatsapp:hover {
+        background-color: #1eb556;
+        border-color: #1eb556;
+      }
     `,
   ],
 })
 export class CheckoutOrderConfirmationComponent {
   readonly order = input.required<Order>();
+  readonly whatsappMessage = input<string>('');
+  readonly whatsappNumber = input<string>('201008150149');
+
+  protected whatsappLink(): string {
+    const msg = this.whatsappMessage();
+    if (!msg) return '';
+    return `https://wa.me/${this.whatsappNumber()}?text=${encodeURIComponent(msg)}`;
+  }
 }

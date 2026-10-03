@@ -1,5 +1,5 @@
 <div class="account-wishlist">
-  <header class="account-wishlist__header">
+  <header class="account-wishlist__header" appRevealOnScroll>
     <h1 class="account-wishlist__title">{{ 'account.wishlist' | translate }}</h1>
     <p class="account-wishlist__subtitle">
       {{ 'account.wishlistDesc' | translate }}
@@ -37,7 +37,7 @@
 
   <!-- Success -->
   @if (state() === 'success') {
-    <ul class="account-wishlist__grid">
+    <ul class="account-wishlist__grid" appRevealOnScroll [stagger]="true">
       @for (item of items(); track item._id) {
         <li class="wishlist-card">
           <a [routerLink]="['/products', item.slug]" class="wishlist-card__media">

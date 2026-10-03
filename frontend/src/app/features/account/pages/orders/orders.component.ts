@@ -11,6 +11,7 @@ import { PricePipe } from '../../../../shared/pipes/price.pipe';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { RevealOnScrollDirective } from '../../../../shared/directives/reveal-on-scroll.directive';
 
 type LoadState = 'loading' | 'success' | 'empty' | 'error';
 
@@ -29,6 +30,7 @@ const PAGE_SIZE = 10;
     EmptyStateComponent,
     LoaderComponent,
     PaginationComponent,
+    RevealOnScrollDirective,
   ],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss',

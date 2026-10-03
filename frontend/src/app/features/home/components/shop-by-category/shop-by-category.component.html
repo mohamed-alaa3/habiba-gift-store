@@ -1,5 +1,5 @@
 <section class="shop-by-category" aria-labelledby="shop-by-category-title">
-  <header class="shop-by-category__header">
+  <header class="shop-by-category__header" appRevealOnScroll>
     <h2 id="shop-by-category-title" class="shop-by-category__title">
       {{ titleKey() | translate }}
     </h2>
@@ -12,7 +12,7 @@
     class="shop-by-category__grid"
     appRevealOnScroll
     [stagger]="true"
-    [delay]="150"
+    [delay]="80"
   >
     @for (category of categories; track category.id; let i = $index) {
       <a

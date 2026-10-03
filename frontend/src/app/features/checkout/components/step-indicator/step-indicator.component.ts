@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, input } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
-export type CheckoutStep = 'information' | 'shipping' | 'payment' | 'review';
+export type CheckoutStep = 'information' | 'shipping' | 'coupon' | 'payment' | 'proof' | 'review';
 
 interface StepDef {
   key: CheckoutStep;
@@ -98,7 +98,7 @@ interface StepDef {
 
       .step-indicator__line {
         display: inline-block;
-        width: 32px;
+        width: 24px;
         height: 2px;
         background-color: var(--border);
         border-radius: 2px;
@@ -107,7 +107,7 @@ interface StepDef {
 
       @media (min-width: 768px) {
         .step-indicator__line {
-          width: 56px;
+          width: 40px;
         }
       }
 
@@ -139,11 +139,20 @@ export class CheckoutStepIndicatorComponent {
   protected readonly steps: StepDef[] = [
     { key: 'information', labelKey: 'checkout.stepInformation' },
     { key: 'shipping', labelKey: 'checkout.stepShipping' },
+    { key: 'coupon', labelKey: 'checkout.stepCoupon' },
     { key: 'payment', labelKey: 'checkout.stepPayment' },
+    { key: 'proof', labelKey: 'checkout.stepProof' },
     { key: 'review', labelKey: 'checkout.stepReview' },
   ];
 
-  private order: CheckoutStep[] = ['information', 'shipping', 'payment', 'review'];
+  private readonly order: CheckoutStep[] = [
+    'information',
+    'shipping',
+    'coupon',
+    'payment',
+    'proof',
+    'review',
+  ];
 
   protected isActive(step: CheckoutStep): boolean {
     return this.current() === step;

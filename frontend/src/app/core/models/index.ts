@@ -6,5 +6,8 @@ export * from './product.model';
 export * from './review.model';
 export * from './cart.model';
 export * from './order.model';
+export * from './coupon.model';
+export * from './settings.model';
 export * from './wishlist.model';
 export * from './banner.model';
+// export * from './seo.model';

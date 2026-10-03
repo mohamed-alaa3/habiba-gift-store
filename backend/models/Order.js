@@ -1,4 +1,10 @@
 const mongoose = require("mongoose");
+const {
+  ORDER_STATUS_VALUES,
+  PAYMENT_STATUS_VALUES,
+  PAYMENT_METHOD_VALUES,
+  PAYMENT_PROOF_METHOD_VALUES,
+} = require("../config/constants");
 
 const translationSchema = new mongoose.Schema(
   {
@@ -19,14 +25,13 @@ const selectedOptionSchema = new mongoose.Schema(
 // Snapshot of product info at purchase time
 const orderItemSchema = new mongoose.Schema(
   {
-    // Discriminator: product (default) or gift-box
     type: {
       type: String,
       enum: ["product", "gift-box"],
       default: "product",
     },
 
-    // For products (existing behavior)
+    // For products
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
@@ -66,14 +71,6 @@ const orderItemSchema = new mongoose.Schema(
     giftBox: {
       type: mongoose.Schema.Types.Mixed,
       default: null,
-      // Expected shape:
-      // {
-      //   box: { id, name, price, image },
-      //   items: [{ id, name, price, image, quantity }],
-      //   wrap: { id, name, price, image },
-      //   ribbon: { id, name, price, color, image },
-      //   note: string
-      // }
     },
   },
   { _id: false },
@@ -91,21 +88,15 @@ const addressSnapshotSchema = new mongoose.Schema(
     building: { type: String, default: "" },
     apartment: { type: String, default: "" },
     postalCode: { type: String, default: "" },
+    // Phase 3: governorate selected at checkout
+    governorate: { type: String, default: "" },
+    governorateName: {
+      type: translationSchema,
+      default: () => ({ en: "", ar: "" }),
+    },
   },
   { _id: false },
 );
-
-const ORDER_STATUSES = [
-  "pending",
-  "confirmed",
-  "processing",
-  "shipped",
-  "delivered",
-  "cancelled",
-];
-
-const PAYMENT_STATUSES = ["pending", "paid", "failed", "refunded"];
-const PAYMENT_METHODS = ["cod"];
 
 const orderSchema = new mongoose.Schema(
   {
@@ -150,21 +141,58 @@ const orderSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
+    // Absolute coupon discount
     discount: {
       type: Number,
       required: true,
       min: 0,
       default: 0,
     },
+    // Full-payment discount (Phase 3). Kept separate from `discount` so
+    // the admin can tell the two apart.
+    paymentDiscount: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 0,
+    },
+    // Coupon applied to this order. The discount amount itself lives in `discount`.
+    couponCode: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      default: "",
+    },
+    coupon: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Coupon",
+      default: null,
+      index: true,
+    },
     total: {
       type: Number,
       required: true,
       min: 0,
     },
+    // Amount the customer must transfer now (deposit or full total).
+    // Zero for COD.
+    amountDueNow: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 0,
+    },
+    // Amount collected on delivery (total - amountDueNow). Zero for full payment.
+    remainingAmount: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 0,
+    },
     status: {
       type: String,
       enum: {
-        values: ORDER_STATUSES,
+        values: ORDER_STATUS_VALUES,
         message: "Invalid order status",
       },
       default: "pending",
@@ -173,7 +201,7 @@ const orderSchema = new mongoose.Schema(
     paymentStatus: {
       type: String,
       enum: {
-        values: PAYMENT_STATUSES,
+        values: PAYMENT_STATUS_VALUES,
         message: "Invalid payment status",
       },
       default: "pending",
@@ -181,11 +209,50 @@ const orderSchema = new mongoose.Schema(
     paymentMethod: {
       type: String,
       enum: {
-        values: PAYMENT_METHODS,
+        values: PAYMENT_METHOD_VALUES,
         message: "Invalid payment method",
       },
       default: "cod",
     },
+
+    // --- Phase 3: payment proof ---
+    // Path to the uploaded screenshot (relative to backend/private/payment-proofs).
+    // Empty for COD orders (no proof required).
+    paymentProofImage: {
+      type: String,
+      default: "",
+    },
+    // Which number the customer transferred to: 'vodafone' | 'instapay'
+    paymentProofMethod: {
+      type: String,
+      enum: {
+        values: [...PAYMENT_PROOF_METHOD_VALUES, ""],
+        message: "Invalid payment proof method",
+      },
+      default: "",
+    },
+    paymentProofUploadedAt: {
+      type: Date,
+      default: null,
+    },
+
+    // --- Phase 1: cancellation & payment review audit ---
+    rejectionReason: {
+      type: String,
+      trim: true,
+      maxlength: [500, "Rejection reason must be at most 500 characters"],
+      default: "",
+    },
+    paymentReviewedAt: {
+      type: Date,
+      default: null,
+    },
+    paymentReviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
     notes: {
       type: String,
       trim: true,
@@ -206,6 +273,6 @@ orderSchema.set("toJSON", {
 const Order = mongoose.model("Order", orderSchema);
 
 module.exports = Order;
-module.exports.ORDER_STATUSES = ORDER_STATUSES;
-module.exports.PAYMENT_STATUSES = PAYMENT_STATUSES;
-module.exports.PAYMENT_METHODS = PAYMENT_METHODS;
+module.exports.ORDER_STATUS_VALUES = ORDER_STATUS_VALUES;
+module.exports.PAYMENT_STATUS_VALUES = PAYMENT_STATUS_VALUES;
+module.exports.PAYMENT_METHOD_VALUES = PAYMENT_METHOD_VALUES;

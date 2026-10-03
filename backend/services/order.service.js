@@ -6,12 +6,27 @@ const WrapStyle = require("../models/WrapStyle");
 const Ribbon = require("../models/Ribbon");
 const generateOrderNumber = require("../utils/generateOrderNumber");
 const cartService = require("./cart.service");
+const couponService = require("./coupon.service");
+const settingService = require("./setting.service");
 const env = require("../config/env");
+const path = require("path");
+const fs = require("fs");
 const { buildImageUrl } = require("../utils/buildImageUrl");
+const { assertTransition } = require("../utils/orderTransitions");
+const { computePricing } = require("./orderPricing.service");
+const { buildOrderMessage } = require("./whatsappMessage.service");
+const { PRIVATE_UPLOAD_DIR } = require("../middleware/upload");
+const {
+  ORDER_STATUSES,
+  PAYMENT_STATUSES,
+  PAYMENT_METHODS,
+  PAYMENT_PROOF_METHODS,
+} = require("../config/constants");
 
-/**
- * Compute effective price for a product.
- */
+// ============================================================
+// Helpers
+// ============================================================
+
 function effectivePrice(product) {
   if (
     product.discountPrice != null &&
@@ -24,11 +39,13 @@ function effectivePrice(product) {
 }
 
 /**
- * Enrich a stored order with full image URLs (for API responses).
- * Handles both product and gift-box items.
+ * Attach public URLs to a stored order.
+ * - Product / gift-box images use buildImageUrl (local /uploads).
+ * - Payment proof is exposed via an authenticated endpoint.
  */
 function withImageUrls(order) {
   const obj = order.toJSON();
+
   if (obj.items) {
     obj.items = obj.items.map((it) => {
       const enriched = {
@@ -36,7 +53,6 @@ function withImageUrls(order) {
         imageUrl: buildImageUrl(it.imageSnapshot || ""),
       };
 
-      // Enrich gift-box internal items with image URLs
       if (it.type === "gift-box" && it.giftBox) {
         if (it.giftBox.box) {
           it.giftBox.box.imageUrl = buildImageUrl(it.giftBox.box.image || "");
@@ -60,14 +76,23 @@ function withImageUrls(order) {
       return enriched;
     });
   }
+
+  // Expose a stable URL the frontend can call with the auth header.
+  obj.hasPaymentProof = Boolean(obj.paymentProofImage);
+  if (obj.hasPaymentProof) {
+    obj.paymentProofUrl = `/api/orders/${obj._id}/payment-proof`;
+  } else {
+    obj.paymentProofUrl = null;
+  }
+  delete obj.paymentProofImage;
+
   return obj;
 }
 
-/**
- * Build an OrderItem for a gift box.
- * Validates all referenced entities (box, wrap, ribbon, products) exist and are active.
- * Calculates the price server-side using fresh DB data.
- */
+// ============================================================
+// Gift-box builder (unchanged from Feature 2)
+// ============================================================
+
 async function buildGiftBoxOrderItem(giftBoxInput) {
   if (
     !giftBoxInput ||
@@ -77,13 +102,11 @@ async function buildGiftBoxOrderItem(giftBoxInput) {
     throw ApiError.badRequest("Invalid gift box configuration");
   }
 
-  // --- Box ---
   const box = await GiftBox.findById(giftBoxInput.boxId);
   if (!box || !box.isActive) {
     throw ApiError.badRequest("Gift box is not available");
   }
 
-  // --- Items ---
   if (giftBoxInput.items.length === 0) {
     throw ApiError.badRequest("Gift box must contain at least one item");
   }
@@ -109,7 +132,6 @@ async function buildGiftBoxOrderItem(giftBoxInput) {
       throw ApiError.badRequest(`Product not found: ${inputItem.productId}`);
     }
 
-    // Stock check
     if (product.stock < 1) {
       throw ApiError.conflict(
         `${product.name.en || product.name.ar}: out of stock`,
@@ -137,7 +159,6 @@ async function buildGiftBoxOrderItem(giftBoxInput) {
     itemsTotal += lineTotal;
   }
 
-  // --- Wrap Style ---
   let wrapSnapshot = null;
   let wrapPrice = 0;
   if (giftBoxInput.wrapStyleId) {
@@ -154,7 +175,6 @@ async function buildGiftBoxOrderItem(giftBoxInput) {
     wrapPrice = wrap.price;
   }
 
-  // --- Ribbon ---
   let ribbonSnapshot = null;
   let ribbonPrice = 0;
   if (giftBoxInput.ribbonId) {
@@ -172,10 +192,7 @@ async function buildGiftBoxOrderItem(giftBoxInput) {
     ribbonPrice = ribbon.price;
   }
 
-  // --- Note ---
   const note = (giftBoxInput.note || "").toString().slice(0, 500);
-
-  // --- Total ---
   const total = box.basePrice + itemsTotal + wrapPrice + ribbonPrice;
 
   const giftBoxSnapshot = {
@@ -210,29 +227,23 @@ async function buildGiftBoxOrderItem(giftBoxInput) {
   };
 }
 
+// ============================================================
+// Cart snapshot — shared by quote + create
+// ============================================================
+
 /**
- * Create an order from the user's current cart.
- * The cart may contain both regular products and gift-box items.
- *
- * Steps:
- *  1. Load cart, verify not empty
- *  2. For each cart item:
- *     - product → validate & build product order item
- *     - gift-box → re-validate via buildGiftBoxOrderItem
- *  3. Compute totals server-side
- *  4. Create order with snapshots
- *  5. Decrement stock for product items (with rollback on failure)
- *  6. Decrement stock for gift-box internal products
- *  7. Clear the cart
+ * Load the user's cart, validate all items, and return:
+ *  - orderItems   (fresh snapshots, server prices)
+ *  - subtotal     (merchandise only)
+ *  - productMap   (for coupon scoping)
  */
-async function createOrder(userId, { shippingAddress, notes }) {
+async function buildCartSnapshot(userId) {
   const cart = await cartService.getOrCreateCart(userId);
 
   if (!cart.items || cart.items.length === 0) {
     throw ApiError.badRequest("Your cart is empty");
   }
 
-  // ---- Load fresh products (product items only) ----
   const productIds = cart.items
     .filter((i) => i.type === "product" && i.product)
     .map((i) => i.product);
@@ -243,11 +254,8 @@ async function createOrder(userId, { shippingAddress, notes }) {
   const orderItems = [];
   let subtotal = 0;
 
-  // ---- Loop over cart items ----
   for (const item of cart.items) {
-    // ============ GIFT BOX CART ITEM ============
     if (item.type === "gift-box" && item.giftBox) {
-      // Re-validate everything by calling buildGiftBoxOrderItem
       const giftBoxItem = await buildGiftBoxOrderItem({
         boxId: item.giftBox.boxId,
         items: (item.giftBox.items || []).map((gi) => ({
@@ -264,7 +272,6 @@ async function createOrder(userId, { shippingAddress, notes }) {
       continue;
     }
 
-    // ============ REGULAR PRODUCT CART ITEM ============
     const product = productMap.get(item.product.toString());
 
     if (!product || !product.isActive) {
@@ -295,14 +302,257 @@ async function createOrder(userId, { shippingAddress, notes }) {
     subtotal += lineSubtotal;
   }
 
-  // ---- Server-side totals ----
-  const shippingFee = env.shippingFee || 0;
-  const tax = Math.round(subtotal * (env.taxRate || 0) * 100) / 100;
-  const discount = 0;
-  const total =
-    Math.round((subtotal + shippingFee + tax - discount) * 100) / 100;
+  return { cart, orderItems, subtotal, productMap };
+}
 
-  // ---- Create order (retry on orderNumber collision) ----
+// ============================================================
+// Governorate + payment-method resolution (from Settings)
+// ============================================================
+
+/**
+ * Validate the governorate key against Settings and return
+ * { key, name, fee, enabled } or throw.
+ */
+async function resolveGovernorate(governorateKey) {
+  if (!governorateKey || typeof governorateKey !== "string") {
+    throw ApiError.badRequest("Please select a governorate");
+  }
+
+  const gov = await settingService.getGovernorate(governorateKey);
+  if (!gov) {
+    throw ApiError.badRequest("Unknown governorate");
+  }
+  if (!gov.enabled) {
+    throw ApiError.badRequest("We don't ship to this governorate right now");
+  }
+  return gov;
+}
+
+/**
+ * Load payment-related settings + enforce that the customer's
+ * chosen method is actually offered.
+ */
+async function resolvePaymentSettings(paymentMethod, paymentProofMethod) {
+  const payment = await settingService.getPaymentSettings();
+
+  if (
+    paymentMethod === PAYMENT_METHODS.DEPOSIT ||
+    paymentMethod === PAYMENT_METHODS.FULL
+  ) {
+    // At least one method must be configured.
+    const hasVodafone = Boolean(payment.vodafoneCashNumber);
+    const hasInstapay = Boolean(payment.instapayNumber);
+    if (!hasVodafone && !hasInstapay) {
+      throw ApiError.badRequest(
+        "Online payment is not available right now. Please choose cash on delivery.",
+      );
+    }
+
+    if (paymentProofMethod) {
+      if (
+        paymentProofMethod === PAYMENT_PROOF_METHODS.VODAFONE &&
+        !hasVodafone
+      ) {
+        throw ApiError.badRequest("Vodafone Cash is not available right now");
+      }
+      if (
+        paymentProofMethod === PAYMENT_PROOF_METHODS.INSTAPAY &&
+        !hasInstapay
+      ) {
+        throw ApiError.badRequest("InstaPay is not available right now");
+      }
+    }
+  }
+
+  return payment;
+}
+
+// ============================================================
+// Public API — quote
+// ============================================================
+
+/**
+ * POST /api/orders/quote
+ *
+ * Runs the full pricing pipeline (cart snapshot, governorate fee,
+ * coupon, payment discount) WITHOUT touching the DB. Safe to call
+ * on every keystroke of the checkout summary.
+ */
+async function quoteOrder(userId, input) {
+  const { shippingAddress, paymentMethod, couponCode, paymentProofMethod } =
+    input;
+
+  const { orderItems, subtotal, productMap } = await buildCartSnapshot(userId);
+
+  const gov = await resolveGovernorate(shippingAddress?.governorate);
+  const payment = await resolvePaymentSettings(
+    paymentMethod,
+    paymentProofMethod,
+  );
+
+  // Coupon — validated against the fresh cart context.
+  let couponDiscount = 0;
+  let appliedCoupon = null;
+  if (couponCode) {
+    const context = couponService.buildContextFromOrderItems(
+      orderItems,
+      productMap,
+      subtotal,
+    );
+    const result = await couponService.validate(couponCode, context, userId);
+    if (!result.valid) {
+      throw ApiError.badRequest(result.message, [
+        { field: "couponCode", message: result.reason },
+      ]);
+    }
+    couponDiscount = result.discount;
+    appliedCoupon = result.coupon;
+  }
+
+  const pricing = computePricing({
+    subtotal,
+    shippingFee: gov.fee,
+    taxRate: env.taxRate,
+    couponDiscount,
+    paymentMethod,
+    depositAmount: payment.depositAmount,
+    fullPaymentDiscountPercent: payment.fullPaymentDiscountPercent,
+  });
+
+  return {
+    governorate: { key: gov.key, name: gov.name, fee: gov.fee },
+    paymentSettings: {
+      depositAmount: payment.depositAmount,
+      fullPaymentDiscountPercent: payment.fullPaymentDiscountPercent,
+      vodafoneCashNumber: payment.vodafoneCashNumber,
+      instapayNumber: payment.instapayNumber,
+    },
+    coupon: appliedCoupon
+      ? { code: appliedCoupon.code, discount: couponDiscount }
+      : null,
+    items: orderItems,
+    ...pricing,
+  };
+}
+
+// ============================================================
+// Public API — create
+// ============================================================
+
+/**
+ * POST /api/orders
+ *
+ * Atomic create:
+ * 1. Snapshot the cart.
+ * 2. Resolve governorate + payment settings.
+ * 3. Validate coupon.
+ * 4. Compute pricing server-side.
+ * 5. Verify the client's `amountDueNow` matches ours (PRICE_CHANGED guard).
+ * 6. Require a payment proof for deposit/full.
+ * 7. Create order + reserve stock + increment coupon usage (rollback on failure).
+ * 8. Return order + WhatsApp message.
+ */
+async function createOrder(userId, input) {
+  const {
+    shippingAddress,
+    notes,
+    couponCode,
+    paymentMethod,
+    paymentProofMethod,
+    amountDueNow,
+    paymentProofFile,
+  } = input;
+
+  // ---- 1. Cart snapshot ----
+  const { cart, orderItems, subtotal, productMap } =
+    await buildCartSnapshot(userId);
+
+  // ---- 2. Governorate + payment ----
+  const gov = await resolveGovernorate(shippingAddress?.governorate);
+  const payment = await resolvePaymentSettings(
+    paymentMethod,
+    paymentProofMethod,
+  );
+
+  // ---- 3. Coupon ----
+  let couponDiscount = 0;
+  let appliedCoupon = null;
+  if (couponCode) {
+    const context = couponService.buildContextFromOrderItems(
+      orderItems,
+      productMap,
+      subtotal,
+    );
+    const result = await couponService.validate(couponCode, context, userId);
+    if (!result.valid) {
+      throw ApiError.badRequest(result.message, [
+        { field: "couponCode", message: result.reason },
+      ]);
+    }
+    couponDiscount = result.discount;
+    appliedCoupon = result.coupon;
+  }
+
+  // ---- 4. Pricing ----
+  const pricing = computePricing({
+    subtotal,
+    shippingFee: gov.fee,
+    taxRate: env.taxRate,
+    couponDiscount,
+    paymentMethod,
+    depositAmount: payment.depositAmount,
+    fullPaymentDiscountPercent:
+      payment.paymentDiscountPercent ?? payment.fullPaymentDiscountPercent,
+  });
+
+  // ---- 5. Price guard ----
+  // The frontend sends back the amountDueNow it showed to the customer.
+  // If it doesn't match our server-side value, refuse rather than let
+  // them transfer a stale amount.
+  const clientDue = Number(amountDueNow);
+  if (
+    !Number.isFinite(clientDue) ||
+    Math.abs(clientDue - pricing.amountDueNow) > 0.01
+  ) {
+    throw ApiError.conflict(
+      "The order total has changed. Please refresh the checkout and try again.",
+      [{ field: "amountDueNow", message: "PRICE_CHANGED" }],
+    );
+  }
+
+  // ---- 6. Payment proof requirement ----
+  const needsProof =
+    paymentMethod === PAYMENT_METHODS.DEPOSIT ||
+    paymentMethod === PAYMENT_METHODS.FULL;
+
+  if (needsProof && !paymentProofFile) {
+    throw ApiError.badRequest("Please upload a screenshot of your transfer");
+  }
+  if (needsProof && !paymentProofMethod) {
+    throw ApiError.badRequest("Please choose which number you transferred to");
+  }
+  if (!needsProof && paymentProofFile) {
+    throw ApiError.badRequest(
+      "Payment proof is not required for cash on delivery",
+    );
+  }
+
+  // ---- 7. Build snapshot address ----
+  const snapshotAddress = {
+    fullName: shippingAddress.fullName,
+    phone: shippingAddress.phone,
+    country: shippingAddress.country,
+    city: shippingAddress.city,
+    area: shippingAddress.area || "",
+    street: shippingAddress.street,
+    building: shippingAddress.building || "",
+    apartment: shippingAddress.apartment || "",
+    postalCode: shippingAddress.postalCode || "",
+    governorate: gov.key,
+    governorateName: gov.name,
+  };
+
+  // ---- 8. Create order (retry on orderNumber collision) ----
   let order;
   let attempts = 0;
   while (!order && attempts < 5) {
@@ -317,15 +567,23 @@ async function createOrder(userId, { shippingAddress, notes }) {
       user: userId,
       orderNumber,
       items: orderItems,
-      shippingAddress,
-      subtotal,
-      shippingFee,
-      tax,
-      discount,
-      total,
-      status: "pending",
-      paymentStatus: "pending",
-      paymentMethod: "cod",
+      shippingAddress: snapshotAddress,
+      subtotal: pricing.subtotal,
+      shippingFee: pricing.shippingFee,
+      tax: pricing.tax,
+      discount: pricing.couponDiscount,
+      paymentDiscount: pricing.paymentDiscount,
+      couponCode: appliedCoupon ? appliedCoupon.code : "",
+      coupon: appliedCoupon ? appliedCoupon._id : null,
+      total: pricing.total,
+      amountDueNow: pricing.amountDueNow,
+      remainingAmount: pricing.remainingAmount,
+      status: ORDER_STATUSES.PENDING,
+      paymentStatus: PAYMENT_STATUSES.PENDING,
+      paymentMethod,
+      paymentProofImage: paymentProofFile ? paymentProofFile.filename : "",
+      paymentProofMethod: paymentProofFile ? paymentProofMethod : "",
+      paymentProofUploadedAt: paymentProofFile ? new Date() : null,
       notes: notes || "",
     });
 
@@ -336,11 +594,10 @@ async function createOrder(userId, { shippingAddress, notes }) {
     throw ApiError.internal("Could not generate a unique order number");
   }
 
-  // ---- Decrement stock for product items (with rollback) ----
+  // ---- 9. Decrement stock + reserve coupon (with rollback) ----
   const decremented = [];
   try {
     for (const item of orderItems) {
-      // Skip non-product items
       if (item.type !== "product" || !item.product) continue;
 
       // eslint-disable-next-line no-await-in-loop
@@ -355,8 +612,11 @@ async function createOrder(userId, { shippingAddress, notes }) {
       }
       decremented.push(item);
     }
+
+    if (appliedCoupon) {
+      await couponService.incrementUsage(appliedCoupon._id);
+    }
   } catch (err) {
-    // Rollback
     for (const item of decremented) {
       // eslint-disable-next-line no-await-in-loop
       await Product.updateOne(
@@ -365,10 +625,15 @@ async function createOrder(userId, { shippingAddress, notes }) {
       ).catch(() => {});
     }
     await Order.deleteOne({ _id: order._id }).catch(() => {});
+    // Clean up the uploaded proof on rollback
+    if (paymentProofFile?.filename) {
+      const fp = path.join(PRIVATE_UPLOAD_DIR, paymentProofFile.filename);
+      fs.promises.unlink(fp).catch(() => {});
+    }
     throw err;
   }
 
-  // ---- Decrement stock for gift-box internal products ----
+  // ---- 10. Decrement stock for gift-box internal products ----
   const giftItems = orderItems.filter((i) => i.type === "gift-box");
   for (const gItem of giftItems) {
     if (!gItem.giftBox?.items) continue;
@@ -381,16 +646,24 @@ async function createOrder(userId, { shippingAddress, notes }) {
     }
   }
 
-  // ---- Clear the cart ----
+  // ---- 11. Clear the cart ----
   cart.items = [];
   await cart.save();
 
-  return withImageUrls(order);
+  // ---- 12. Return enriched order + WhatsApp message ----
+  const enriched = withImageUrls(order);
+  const whatsappMessage = buildOrderMessage(enriched);
+
+  return {
+    order: enriched,
+    whatsappMessage,
+  };
 }
 
-/**
- * List orders for a user (customer) or all orders (admin).
- */
+// ============================================================
+// Public API — reads
+// ============================================================
+
 async function listOrders(user, query = {}) {
   const filter = {};
   if (user.role !== "admin") filter.user = user._id;
@@ -417,10 +690,6 @@ async function listOrders(user, query = {}) {
   };
 }
 
-/**
- * Get a single order.
- * Customers may only access their own orders.
- */
 async function getOrderById(user, orderId) {
   const order = await Order.findById(orderId);
   if (!order) throw ApiError.notFound("Order not found");
@@ -432,54 +701,6 @@ async function getOrderById(user, orderId) {
   return withImageUrls(order);
 }
 
-/**
- * Update order status (admin).
- * If status moves to "cancelled" from a non-cancelled state, restock product items.
- */
-async function updateOrderStatus(orderId, newStatus) {
-  const order = await Order.findById(orderId);
-  if (!order) throw ApiError.notFound("Order not found");
-
-  const wasCancelled = order.status === "cancelled";
-  const willBeCancelled = newStatus === "cancelled";
-
-  order.status = newStatus;
-
-  // Restock when transitioning into "cancelled"
-  if (!wasCancelled && willBeCancelled) {
-    // Restock regular product items
-    for (const item of order.items) {
-      // Skip non-product items
-      if (item.type !== "product" || !item.product) continue;
-
-      // eslint-disable-next-line no-await-in-loop
-      await Product.updateOne(
-        { _id: item.product },
-        { $inc: { stock: item.quantity } },
-      ).catch(() => {});
-    }
-
-    // Restock gift-box internal products
-    const giftItems = order.items.filter((i) => i.type === "gift-box");
-    for (const gItem of giftItems) {
-      if (!gItem.giftBox?.items) continue;
-      for (const gbItem of gItem.giftBox.items) {
-        // eslint-disable-next-line no-await-in-loop
-        await Product.updateOne(
-          { _id: gbItem.id },
-          { $inc: { stock: gbItem.quantity || 1 } },
-        ).catch(() => {});
-      }
-    }
-  }
-
-  await order.save();
-  return withImageUrls(order);
-}
-
-/**
- * Get tracking info (status only in V1).
- */
 async function getOrderTracking(user, orderId) {
   const order = await getOrderById(user, orderId);
   return {
@@ -491,10 +712,167 @@ async function getOrderTracking(user, orderId) {
   };
 }
 
+/**
+ * Return the physical path + mime type of an order's payment proof,
+ * enforcing that only the owner or an admin can access it.
+ */
+async function getPaymentProofFile(user, orderId) {
+  const order = await Order.findById(orderId);
+  if (!order) throw ApiError.notFound("Order not found");
+
+  if (user.role !== "admin" && order.user.toString() !== user._id.toString()) {
+    throw ApiError.forbidden("You do not have access to this order");
+  }
+
+  if (!order.paymentProofImage) {
+    throw ApiError.notFound("No payment proof uploaded for this order");
+  }
+
+  const filePath = path.join(PRIVATE_UPLOAD_DIR, order.paymentProofImage);
+
+  // Guard against path traversal in the stored filename.
+  if (!filePath.startsWith(PRIVATE_UPLOAD_DIR)) {
+    throw ApiError.badRequest("Invalid file path");
+  }
+
+  if (!fs.existsSync(filePath)) {
+    throw ApiError.notFound("Payment proof file is missing");
+  }
+
+  const ext = path.extname(filePath).toLowerCase();
+  const mimeType =
+    ext === ".png"
+      ? "image/png"
+      : ext === ".webp"
+        ? "image/webp"
+        : "image/jpeg";
+
+  return {
+    filePath,
+    mimeType,
+    filename: order.paymentProofImage,
+  };
+}
+
+// ============================================================
+// Public API — admin status transitions (Phase 1 + Phase 3)
+// ============================================================
+
+/**
+ * Release stock + coupon usage for an order that is being cancelled.
+ * Guarded by the atomic transition in `updateOrderStatus`.
+ */
+async function releaseReservations(order) {
+  if (order.coupon) {
+    await couponService.decrementUsage(order.coupon).catch(() => {});
+  }
+
+  for (const item of order.items) {
+    if (item.type !== "product" || !item.product) continue;
+    // eslint-disable-next-line no-await-in-loop
+    await Product.updateOne(
+      { _id: item.product },
+      { $inc: { stock: item.quantity } },
+    ).catch(() => {});
+  }
+
+  const giftItems = order.items.filter((i) => i.type === "gift-box");
+  for (const gItem of giftItems) {
+    if (!gItem.giftBox?.items) continue;
+    for (const gbItem of gItem.giftBox.items) {
+      // eslint-disable-next-line no-await-in-loop
+      await Product.updateOne(
+        { _id: gbItem.id },
+        { $inc: { stock: gbItem.quantity || 1 } },
+      ).catch(() => {});
+    }
+  }
+}
+
+function derivePaymentStatus(order, newStatus) {
+  const method = order.paymentMethod;
+  const current = order.paymentStatus;
+
+  if (newStatus === ORDER_STATUSES.CANCELLED) {
+    // Rejecting a pending proof → failed. Already-approved stays as-is.
+    if (current === PAYMENT_STATUSES.PENDING) return PAYMENT_STATUSES.FAILED;
+    return current;
+  }
+
+  if (newStatus === ORDER_STATUSES.CONFIRMED) {
+    if (method === PAYMENT_METHODS.DEPOSIT) return PAYMENT_STATUSES.PARTIAL;
+    if (method === PAYMENT_METHODS.FULL) return PAYMENT_STATUSES.PAID;
+    return current;
+  }
+
+  if (newStatus === ORDER_STATUSES.DELIVERED) {
+    if (method === PAYMENT_METHODS.DEPOSIT) return PAYMENT_STATUSES.PAID;
+    return current;
+  }
+
+  return current;
+}
+
+async function updateOrderStatus(orderId, newStatus, options = {}) {
+  const { reason = "", confirm = false, adminId = null } = options;
+
+  const current = await Order.findById(orderId);
+  if (!current) throw ApiError.notFound("Order not found");
+
+  const transition = assertTransition(current.status, newStatus);
+
+  if (transition.requiresConfirm && confirm !== true) {
+    throw ApiError.badRequest(
+      "Cancelling an order in processing requires explicit confirmation",
+    );
+  }
+  if (transition.requiresReason && (!reason || !reason.trim())) {
+    throw ApiError.badRequest("A reason is required to cancel an order");
+  }
+
+  const update = { status: newStatus };
+  const isCancellation = newStatus === ORDER_STATUSES.CANCELLED;
+
+  if (isCancellation) {
+    update.rejectionReason = reason.trim();
+  }
+  if (newStatus === ORDER_STATUSES.CONFIRMED || isCancellation) {
+    update.paymentReviewedAt = new Date();
+    if (adminId) update.paymentReviewedBy = adminId;
+  }
+
+  const derivedPaymentStatus = derivePaymentStatus(current, newStatus);
+  if (derivedPaymentStatus !== current.paymentStatus) {
+    update.paymentStatus = derivedPaymentStatus;
+  }
+
+  const updated = await Order.findOneAndUpdate(
+    { _id: orderId, status: current.status },
+    { $set: update },
+    { new: true },
+  );
+
+  if (!updated) {
+    throw ApiError.conflict(
+      "Order status changed by another request — please refresh",
+    );
+  }
+
+  if (isCancellation) {
+    await releaseReservations(updated).catch(() => {});
+  }
+
+  return withImageUrls(updated);
+}
+
+// ============================================================
+
 module.exports = {
+  quoteOrder,
   createOrder,
   listOrders,
   getOrderById,
-  updateOrderStatus,
   getOrderTracking,
+  getPaymentProofFile,
+  updateOrderStatus,
 };

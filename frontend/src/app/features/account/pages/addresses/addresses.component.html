@@ -1,5 +1,5 @@
 <div class="account-addresses">
-  <header class="account-addresses__header">
+  <header class="account-addresses__header" appRevealOnScroll>
     <div>
       <h1 class="account-addresses__title">{{ 'account.addresses' | translate }}</h1>
       <p class="account-addresses__subtitle">{{ 'account.addressesDesc' | translate }}</p>
@@ -42,7 +42,7 @@
 
   <!-- Success -->
   @if (state() === 'success') {
-    <ul class="account-addresses__grid">
+    <ul class="account-addresses__grid" appRevealOnScroll [stagger]="true">
       @for (address of addresses(); track address._id) {
         <li class="address-card" [class.is-default]="address.isDefault">
           @if (address.isDefault) {

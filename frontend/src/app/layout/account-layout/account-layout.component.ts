@@ -5,6 +5,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 import { AuthService } from '../../core/services/auth.service';
 import { AuthStore } from '../../core/stores/auth.store';
+import { RevealOnScrollDirective } from '../../shared/directives/reveal-on-scroll.directive';
 
 interface AccountNavItem {
   labelKey: string;
@@ -16,7 +17,7 @@ interface AccountNavItem {
 @Component({
   selector: 'app-account-layout',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet, TranslatePipe],
+  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet, TranslatePipe, RevealOnScrollDirective],
   templateUrl: './account-layout.component.html',
   styleUrl: './account-layout.component.scss',
 })

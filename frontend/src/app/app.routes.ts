@@ -95,6 +95,27 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'coupons',
+        loadComponent: () =>
+          import('./features/admin/pages/coupons/coupons-list/coupons-list.component').then(
+            (m) => m.AdminCouponsListComponent,
+          ),
+      },
+      {
+        path: 'coupons/new',
+        loadComponent: () =>
+          import('./features/admin/pages/coupons/coupon-form/coupon-form.component').then(
+            (m) => m.AdminCouponFormComponent,
+          ),
+      },
+      {
+        path: 'coupons/:id/edit',
+        loadComponent: () =>
+          import('./features/admin/pages/coupons/coupon-form/coupon-form.component').then(
+            (m) => m.AdminCouponFormComponent,
+          ),
+      },
+      {
         path: 'products/new',
         loadComponent: () =>
           import('./features/admin/pages/products/product-form/product-form.component').then(
@@ -198,14 +219,17 @@ export const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
+        data: { seoKey: 'home' },
         loadComponent: () => import('./features/home/home.page').then((m) => m.HomePage),
       },
       {
         path: 'shop',
+        data: { seoKey: 'shop' },
         loadComponent: () => import('./features/shop/shop.page').then((m) => m.ShopPage),
       },
       {
         path: 'products/:slug',
+        data: { seoKey: 'productDetails' },
         loadComponent: () =>
           import('./features/product-details/product-details.page').then(
             (m) => m.ProductDetailsPage,
@@ -213,15 +237,18 @@ export const routes: Routes = [
       },
       {
         path: 'cart',
+        data: { seoKey: 'cart' },
         loadComponent: () => import('./features/cart/cart.page').then((m) => m.CartPage),
       },
       {
         path: 'gifts',
+        data: { seoKey: 'gifts' },
         loadComponent: () =>
           import('./features/gift-builder/gift-builder.page').then((m) => m.GiftBuilderPage),
       },
       {
         path: 'checkout',
+        data: { seoKey: 'checkout' },
         loadComponent: () =>
           import('./features/checkout/checkout.page').then((m) => m.CheckoutPage),
       },
@@ -233,14 +260,17 @@ export const routes: Routes = [
       },
       {
         path: 'about',
+        data: { seoKey: 'about' },
         loadComponent: () => import('./features/about/about.page').then((m) => m.AboutPage),
       },
       {
         path: 'contact',
+        data: { seoKey: 'contact' },
         loadComponent: () => import('./features/contact/contact.page').then((m) => m.ContactPage),
       },
       {
         path: 'privacy-policy',
+        data: { seoKey: 'privacyPolicy' },
         loadComponent: () =>
           import('./features/static-pages/static-page.component').then(
             (m) => m.StaticPageComponent,
@@ -248,6 +278,7 @@ export const routes: Routes = [
       },
       {
         path: 'terms-of-service',
+        data: { seoKey: 'termsOfService' },
         loadComponent: () =>
           import('./features/static-pages/static-page.component').then(
             (m) => m.StaticPageComponent,
@@ -255,6 +286,7 @@ export const routes: Routes = [
       },
       {
         path: 'shipping-policy',
+        data: { seoKey: 'shippingPolicy' },
         loadComponent: () =>
           import('./features/static-pages/static-page.component').then(
             (m) => m.StaticPageComponent,
@@ -262,6 +294,7 @@ export const routes: Routes = [
       },
       {
         path: 'returns-exchanges',
+        data: { seoKey: 'returnsExchanges' },
         loadComponent: () =>
           import('./features/static-pages/static-page.component').then(
             (m) => m.StaticPageComponent,
@@ -269,6 +302,7 @@ export const routes: Routes = [
       },
       {
         path: 'gift-cards',
+        data: { seoKey: 'giftCards' },
         loadComponent: () =>
           import('./features/static-pages/static-page.component').then(
             (m) => m.StaticPageComponent,
@@ -276,6 +310,7 @@ export const routes: Routes = [
       },
       {
         path: '**',
+        data: { seoKey: 'notFound' },
         loadComponent: () =>
           import('./features/not-found/not-found.page').then((m) => m.NotFoundPage),
       },

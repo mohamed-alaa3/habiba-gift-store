@@ -101,4 +101,23 @@ export class AccountOrderDetailsComponent implements OnInit {
   protected statusClass(status: OrderStatus): string {
     return `is-${status}`;
   }
+
+  /** i18n key for the payment method label. */
+  protected paymentMethodKey(method: string): string {
+    switch (method) {
+      case 'cod':
+        return 'checkout.cashOnDelivery';
+      case 'deposit':
+        return 'checkout.paymentDeposit';
+      case 'full':
+        return 'checkout.paymentFull';
+      default:
+        return 'checkout.cashOnDelivery';
+    }
+  }
+
+  /** i18n key for the payment status label. */
+  protected paymentStatusKey(status: string): string {
+    return `orderPayment.${status}`;
+  }
 }

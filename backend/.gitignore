@@ -1,24 +1,30 @@
+# Dependencies
 node_modules/
+
+# Environment
 .env
 .env.local
+.env.*.local
+
+# Logs
 *.log
 npm-debug.log*
+yarn-debug.log*
 yarn-error.log*
 
-# uploads — keep folders but ignore files
-uploads/products/*
-uploads/categories/*
-uploads/banners/*
-!uploads/products/.gitkeep
-!uploads/categories/.gitkeep
-!uploads/banners/.gitkeep
+# Uploads (public)
+uploads/
+!uploads/.gitkeep
 
-# OS / editor
+# Payment proofs (private — never served statically)
+private/
+!private/.gitkeep
+
+# OS
 .DS_Store
 Thumbs.db
-.idea/
-.vscode/
 
-# builds (frontend later)
-dist/
-coverage/
+# Editor
+.vscode/
+.idea/
+*.swp

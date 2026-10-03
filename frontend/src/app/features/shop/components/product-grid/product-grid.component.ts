@@ -18,7 +18,7 @@ const FETCH_TIMEOUT_MS = 8000;
   standalone: true,
   imports: [CommonModule, ProductCardComponent, RevealOnScrollDirective],
   template: `
-    <div class="product-grid stagger-children" role="list" appRevealOnScroll [stagger]="true">
+    <div class="product-grid" role="list" appRevealOnScroll [stagger]="true">
       @for (product of products(); track product._id) {
         <div class="product-grid__item" role="listitem">
           <app-product-card

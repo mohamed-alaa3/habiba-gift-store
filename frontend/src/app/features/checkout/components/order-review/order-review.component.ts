@@ -2,7 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { CartItem } from '../../../../core/models';
+import {
+  CartItem,
+  PaymentMethod,
+  PaymentProofMethod,
+  QuoteResponse,
+} from '../../../../core/models';
 import { LocalizedPipe } from '../../../../shared/pipes/localized.pipe';
 import { PricePipe } from '../../../../shared/pipes/price.pipe';
 import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
@@ -19,9 +24,6 @@ import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
           <h2 class="order-review__title">{{ 'checkout.reviewItems' | translate }}</h2>
           <ul class="order-review__list">
             @for (item of items(); track item._id) {
-              <!-- ============================================ -->
-              <!-- GIFT BOX ITEM -->
-              <!-- ============================================ -->
               @if (item.type === 'gift-box' && item.giftBox) {
                 <li class="order-review__item order-review__item--gift">
                   <div class="order-review__gift-header">
@@ -50,7 +52,6 @@ import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
                     <span class="order-review__price">{{ item.lineTotal ?? 0 | price }}</span>
                   </div>
 
-                  <!-- Box -->
                   <div class="order-review__gift-block">
                     <p class="order-review__gift-label">{{ 'giftBuilder.box' | translate }}</p>
                     <div class="order-review__gift-row">
@@ -63,16 +64,13 @@ import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
                           />
                         }
                       </div>
-                      <p class="order-review__gift-name">
-                        {{ item.giftBox.boxName | localized }}
-                      </p>
-                      <span class="order-review__gift-price">
-                        {{ item.giftBox.boxPrice | price }}
-                      </span>
+                      <p class="order-review__gift-name">{{ item.giftBox.boxName | localized }}</p>
+                      <span class="order-review__gift-price">{{
+                        item.giftBox.boxPrice | price
+                      }}</span>
                     </div>
                   </div>
 
-                  <!-- Items -->
                   @if (item.giftBox.items.length > 0) {
                     <div class="order-review__gift-block">
                       <p class="order-review__gift-label">
@@ -96,7 +94,6 @@ import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
                     </div>
                   }
 
-                  <!-- Wrap -->
                   @if (item.giftBox.wrap; as w) {
                     <div class="order-review__gift-block">
                       <p class="order-review__gift-label">{{ 'giftBuilder.wrap' | translate }}</p>
@@ -116,7 +113,6 @@ import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
                     </div>
                   }
 
-                  <!-- Ribbon -->
                   @if (item.giftBox.ribbon; as r) {
                     <div class="order-review__gift-block">
                       <p class="order-review__gift-label">{{ 'giftBuilder.ribbon' | translate }}</p>
@@ -131,7 +127,6 @@ import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
                     </div>
                   }
 
-                  <!-- Note -->
                   @if (item.giftBox.note) {
                     <div class="order-review__gift-block">
                       <p class="order-review__gift-label">{{ 'giftBuilder.note' | translate }}</p>
@@ -140,9 +135,6 @@ import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
                   }
                 </li>
               } @else {
-                <!-- ============================================ -->
-                <!-- REGULAR PRODUCT ITEM -->
-                <!-- ============================================ -->
                 <li class="order-review__item">
                   <div class="order-review__media">
                     @if (item.product?.imageUrl) {
@@ -181,7 +173,7 @@ import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
         </div>
       }
 
-      <!-- Shipping -->
+      <!-- Shipping Address -->
       <div class="order-review__section">
         <h2 class="order-review__title">{{ 'checkout.reviewShipping' | translate }}</h2>
         <div class="order-review__address">
@@ -200,8 +192,105 @@ import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
             </p>
           }
           <p class="order-review__address-line">{{ address().phone }}</p>
+          @if (address().governorate) {
+            <p class="order-review__address-line order-review__governorate">
+              {{ 'checkout.governorate' | translate }}:
+              <strong>{{ address().governorate }}</strong>
+            </p>
+          }
         </div>
       </div>
+
+      <!-- Payment Method -->
+      <div class="order-review__section">
+        <h2 class="order-review__title">{{ 'checkout.paymentMethod' | translate }}</h2>
+        <p class="order-review__address-line">
+          @switch (paymentMethod()) {
+            @case ('cod') {
+              {{ 'checkout.paymentCod' | translate }}
+            }
+            @case ('deposit') {
+              {{ 'checkout.paymentDeposit' | translate }}
+            }
+            @case ('full') {
+              {{ 'checkout.paymentFull' | translate }}
+            }
+            @default {
+              —
+            }
+          }
+        </p>
+        @if (paymentMethod() === 'deposit' || paymentMethod() === 'full') {
+          @if (paymentProofMethod()) {
+            <p class="order-review__address-line">
+              {{ 'checkout.proofMethod' | translate }}:
+              <strong>
+                {{
+                  paymentProofMethod() === 'vodafone'
+                    ? ('checkout.proofVodafone' | translate)
+                    : ('checkout.proofInstapay' | translate)
+                }}
+              </strong>
+            </p>
+          }
+        }
+      </div>
+
+      <!-- Payment Summary -->
+      @if (quote(); as q) {
+        <div class="order-review__section">
+          <h2 class="order-review__title">{{ 'cart.summary' | translate }}</h2>
+
+          <div class="order-review__summary-row">
+            <span>{{ 'cart.subtotal' | translate }}</span>
+            <span>{{ q.subtotal | price }}</span>
+          </div>
+
+          @if (q.coupon) {
+            <div class="order-review__summary-row is-discount">
+              <span>{{ 'cart.discount' | translate }} ({{ q.coupon.code }})</span>
+              <span>-{{ q.coupon.discount | price }}</span>
+            </div>
+          }
+
+          @if (q.paymentDiscount > 0) {
+            <div class="order-review__summary-row is-discount">
+              <span>{{ 'checkout.paymentDiscountLine' | translate }}</span>
+              <span>-{{ q.paymentDiscount | price }}</span>
+            </div>
+          }
+
+          <div class="order-review__summary-row">
+            <span>{{ 'cart.shipping' | translate }}</span>
+            <span>{{ q.shippingFee | price }}</span>
+          </div>
+
+          @if (q.tax > 0) {
+            <div class="order-review__summary-row">
+              <span>{{ 'checkout.tax' | translate }}</span>
+              <span>{{ q.tax | price }}</span>
+            </div>
+          }
+
+          <div class="order-review__summary-divider"></div>
+
+          <div class="order-review__summary-total">
+            <span>{{ 'cart.total' | translate }}</span>
+            <span>{{ q.total | price }}</span>
+          </div>
+
+          @if (q.amountDueNow > 0) {
+            <div class="order-review__summary-row is-due">
+              <span>{{ 'checkout.amountDueNow' | translate }}</span>
+              <span>{{ q.amountDueNow | price }}</span>
+            </div>
+            <div class="order-review__summary-row">
+              <span>{{ 'checkout.remainingOnDelivery' | translate }}</span>
+              <span>{{ q.remainingAmount | price }}</span>
+            </div>
+          }
+        </div>
+      }
 
       <!-- Notes -->
       @if (notes()) {
@@ -247,7 +336,6 @@ import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
         gap: 0.75rem;
       }
 
-      // ---------- Gift box item ----------
       .order-review__item--gift {
         flex-direction: column;
         align-items: stretch;
@@ -367,7 +455,6 @@ import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
         font-style: italic;
       }
 
-      // ---------- Regular item ----------
       .order-review__item {
         display: flex;
         align-items: center;
@@ -424,7 +511,6 @@ import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
         flex-shrink: 0;
       }
 
-      // ---------- Address ----------
       .order-review__address {
         display: flex;
         flex-direction: column;
@@ -441,6 +527,15 @@ import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
         font-size: 0.875rem;
         color: var(--text-muted);
         margin: 0;
+
+        strong {
+          color: var(--text);
+          font-weight: 600;
+        }
+      }
+
+      .order-review__governorate {
+        margin-top: 0.25rem;
       }
 
       .order-review__notes {
@@ -449,6 +544,52 @@ import { SafeImagePipe } from '../../../../shared/pipes/safe-image.pipe';
         color: var(--text);
         margin: 0;
         white-space: pre-wrap;
+      }
+
+      .order-review__summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+
+        span:last-child {
+          color: var(--text);
+          font-weight: 500;
+          font-variant-numeric: tabular-nums;
+        }
+
+        &.is-discount span:last-child {
+          color: var(--success);
+        }
+
+        &.is-due span:last-child {
+          color: var(--brand-primary);
+          font-weight: 700;
+        }
+      }
+
+      .order-review__summary-divider {
+        height: 1px;
+        background-color: var(--border);
+        margin: 0.25rem 0;
+      }
+
+      .order-review__summary-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 1rem;
+        font-weight: 700;
+        color: var(--text);
+
+        span:last-child {
+          font-family: 'Poppins', sans-serif;
+          font-size: 1.375rem;
+          color: var(--brand-primary);
+          font-variant-numeric: tabular-nums;
+        }
       }
     `,
   ],
@@ -465,6 +606,7 @@ export class CheckoutOrderReviewComponent {
     building: string;
     apartment: string;
     postalCode: string;
+    governorate?: string;
   }>({
     fullName: '',
     phone: '',
@@ -475,6 +617,10 @@ export class CheckoutOrderReviewComponent {
     building: '',
     apartment: '',
     postalCode: '',
+    governorate: '',
   });
   readonly notes = input<string>('');
+  readonly paymentMethod = input<PaymentMethod | ''>('');
+  readonly paymentProofMethod = input<PaymentProofMethod | ''>('');
+  readonly quote = input<QuoteResponse | null>(null);
 }

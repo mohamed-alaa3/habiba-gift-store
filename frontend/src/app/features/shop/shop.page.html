@@ -1,13 +1,13 @@
 <section class="shop">
   <!-- Page header -->
-  <header class="shop__header">
+  <header class="shop__header" appRevealOnScroll>
     <p class="shop__eyebrow">{{ 'shop.eyebrow' | translate }}</p>
     <h1 class="shop__title">{{ 'shop.title' | translate }}</h1>
     <p class="shop__subtitle">{{ 'shop.subtitle' | translate }}</p>
   </header>
 
   <!-- Toolbar -->
-  <div class="shop__toolbar">
+  <div class="shop__toolbar" appRevealOnScroll variant="fade">
     <div class="shop__toolbar-start">
       <button
         type="button"
@@ -42,13 +42,13 @@
   <!-- Layout: sidebar + grid -->
   <div class="shop__layout">
     <!-- Desktop sidebar -->
-    <aside class="shop__sidebar" aria-label="Product filters">
-      <app-filter-sidebar
-        [categories]="categories()"
-        [value]="filters()"
-        (valueChange)="onFiltersChange($event)"
-      />
-    </aside>
+<aside class="shop__sidebar" aria-label="Product filters">
+  <app-filter-sidebar
+    [categories]="categories()"
+    [value]="filters()"
+    (valueChange)="onFiltersChange($event)"
+  />
+</aside>
 
     <!-- Mobile filters drawer -->
     <div

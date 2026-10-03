@@ -34,6 +34,7 @@ import { QuantityStepperComponent } from '../../shared/components/quantity-stepp
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
 import { SkeletonCardComponent } from '../../shared/components/skeleton-card/skeleton-card.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { RevealOnScrollDirective } from '../../shared/directives/reveal-on-scroll.directive';
 
 type LoadState = 'loading' | 'success' | 'error';
 
@@ -54,6 +55,7 @@ const FETCH_TIMEOUT_MS = 8000;
     ProductCardComponent,
     SkeletonCardComponent,
     EmptyStateComponent,
+    RevealOnScrollDirective,
   ],
   templateUrl: './product-details.page.html',
   styleUrl: './product-details.page.scss',

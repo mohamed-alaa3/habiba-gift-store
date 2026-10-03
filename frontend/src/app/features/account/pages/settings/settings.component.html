@@ -1,11 +1,11 @@
 <div class="account-settings">
-  <header class="account-settings__header">
+  <header class="account-settings__header" appRevealOnScroll>
     <h1 class="account-settings__title">{{ 'account.settings' | translate }}</h1>
     <p class="account-settings__subtitle">{{ 'account.settingsDesc' | translate }}</p>
   </header>
 
   <!-- Profile -->
-  <section class="account-settings__card">
+  <section class="account-settings__card" appRevealOnScroll>
     <div class="account-settings__card-head">
       <h2 class="account-settings__card-title">
         {{ 'account.profileInfo' | translate }}
@@ -64,7 +64,7 @@
   </section>
 
   <!-- Password -->
-  <section class="account-settings__card">
+  <section class="account-settings__card" appRevealOnScroll [delay]="60">
     <div class="account-settings__card-head">
       <h2 class="account-settings__card-title">
         {{ 'account.changePassword' | translate }}

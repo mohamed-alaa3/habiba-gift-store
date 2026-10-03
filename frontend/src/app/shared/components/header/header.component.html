@@ -5,7 +5,7 @@
   role="banner"
 >
   <div class="app-header__inner">
-    <!-- Mobile menu button (left on RTL, right on LTR) -->
+    <!-- Mobile menu button -->
     <button
       type="button"
       class="app-header__icon-btn app-header__hamburger"
@@ -23,7 +23,7 @@
     <!-- Logo -->
     <a routerLink="/" class="app-header__logo" aria-label="Habiba Store — Home">
       <img
-        src="assets\logo\habiba-icon.png"
+        src="assets/logo/habiba-icon.png"
         alt=""
         class="app-header__logo-icon"
         width="36"
@@ -55,16 +55,30 @@
       </nav>
     }
 
+    <!-- Desktop search -->
+    <div class="app-header__search">
+      <app-search-bar
+        [placeholder]="'nav.search' | translate"
+        [showShortcut]="false"
+        (submitted)="onSearchSubmit($event)"
+      />
+    </div>
+
     <!-- Right-side actions -->
     <div class="app-header__actions">
-      <!-- Search -->
+      <!-- Mobile search toggle -->
       <button
         type="button"
-        class="app-header__icon-btn"
-        (click)="openSearch()"
+        class="app-header__icon-btn app-header__search-btn"
+        (click)="toggleMobileSearch()"
         [attr.aria-label]="'nav.search' | translate"
+        [attr.aria-expanded]="mobileSearchOpen()"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        @if (mobileSearchOpen()) {
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        }
       </button>
 
       <!-- Language + Theme -->
@@ -99,11 +113,11 @@
       </button>
 
       <!-- Account -->
-<a
-  [routerLink]="accountLink()"
-  class="app-header__icon-btn app-header__account"
-  [attr.aria-label]="'nav.account' | translate"
->
+      <a
+        [routerLink]="accountLink()"
+        class="app-header__icon-btn app-header__account"
+        [attr.aria-label]="'nav.account' | translate"
+      >
         @if (isAuthenticated()) {
           <span class="app-header__avatar" aria-hidden="true">{{ userInitial() }}</span>
         } @else {
@@ -112,43 +126,70 @@
       </a>
     </div>
   </div>
+  <!-- ⬆️ app-header__inner يقفل هنا -->
 
-  <!-- Mobile navigation drawer -->
-  <div
-    class="app-header__mobile-backdrop"
-    [class.is-open]="mobileMenuOpen()"
-    (click)="closeMobileMenu()"
-    role="presentation"
-  ></div>
-
-  <aside
-    class="app-header__mobile-drawer"
-    [class.is-open]="mobileMenuOpen()"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Mobile navigation"
-  >
-    <nav>
-      <ul class="app-header__mobile-list">
-        @for (item of navItems; track item.path) {
-          <li>
-            <a
-              [routerLink]="item.path"
-              routerLinkActive="is-active"
-              [routerLinkActiveOptions]="{ exact: item.path === '/' }"
-              class="app-header__mobile-link"
-              (click)="closeMobileMenu()"
-            >
-              {{ item.labelKey | translate }}
-            </a>
-          </li>
-        }
-      </ul>
-    </nav>
-
-    <div class="app-header__mobile-footer">
-      <app-language-switcher variant="full" />
-      <app-theme-toggle />
+  <!-- Mobile search bar (below the header when open) -->
+  @if (mobileSearchOpen()) {
+    <div class="app-header__mobile-search">
+      <app-search-bar
+        [placeholder]="'nav.search' | translate"
+        (submitted)="onSearchSubmit($event); toggleMobileSearch()"
+      />
     </div>
-  </aside>
+  }
 </header>
+
+<!--
+  Mobile navigation drawer + backdrop.
+  These MUST stay siblings of <header>, not children: .app-header has
+  backdrop-filter / transform, which makes it the containing block for
+  position: fixed descendants and would shrink the drawer to header height.
+-->
+<div
+  class="app-header__mobile-backdrop"
+  [class.is-open]="mobileMenuOpen()"
+  (click)="closeMobileMenu()"
+  role="presentation"
+></div>
+
+<aside
+  class="app-header__mobile-drawer"
+  [class.is-open]="mobileMenuOpen()"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Mobile navigation"
+>
+  <div class="app-header__mobile-head">
+    <button
+      type="button"
+      class="app-header__icon-btn app-header__mobile-close"
+      (click)="closeMobileMenu()"
+      [attr.aria-label]="'nav.closeMenu' | translate"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <nav>
+    <ul class="app-header__mobile-list">
+      @for (item of navItems; track item.path) {
+        <li>
+          <a
+            [routerLink]="item.path"
+            routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+            class="app-header__mobile-link"
+            (click)="closeMobileMenu()"
+          >
+            {{ item.labelKey | translate }}
+          </a>
+        </li>
+      }
+    </ul>
+  </nav>
+
+  <div class="app-header__mobile-footer">
+    <app-language-switcher variant="full" />
+    <app-theme-toggle />
+  </div>
+</aside>
